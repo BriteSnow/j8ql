@@ -1,108 +1,117 @@
 J8QL
 =====
-#### J8SQL is a lightweight SQL centric ORM  for Java 8
+#### J8QL is a lightweight SQL centric ORM  for Java 8
 
-- **SQL Centric:** Making SQL Java amd OO friendly by providing fluid and modern API to build SQL queries and make JDBC calls. Flexible and thread safe SQL CRUD Query builder, allowing to greatly simplify Java Object to/from database call and marshaling. 
-- **Java 8 Centric:** Java 8 offers a great opportunity to re-think Java libraries, J8QL is part of this re-thinking for ORM.
-- **Postgresql First:**  Depth before breath. Going deep in one database first and then add support for others. For example, J8QL offer seamless support for Postgresql awesome "no-sql/schema-less" capability (i.e. HSTORE datatype, see [postgesql as nosql](http://thebuild.com/presentations/pg-as-nosql-pgday-fosdem-2013.pdf)). 
+- **SQL Centric:** Fluid, flexible, progressive, thread safe, and OO friendly scheme to build and execute SQL queries. 
+- **Schema Aware:** Scan (and cache) schema metadata to minimize redundancy between database schema and Java Class definitions.
+- **Java 8 Centric:** Written in Java 8 for Java 8.
+- **Postgresql First:**  Depth before breath. Going deep on PostgreSQL first.
 
 **Current version:** 0.5-SNAPSHOT *(Under development, relatively robust, for postgres 9.3 only, API might change)* 
 
 **License:** Apache v2
-. Use it, fork it, or own it 
 
-[J8QL by example](#j8ql-by-example) | [Maven Info](#maven-info) | [Why not Hibernate?](#why-not-hibernate) | [Why J8QL?](#why-j8ql)
+[J8QL by example](#j8ql-by-example) | [Maven Info](#maven-info) | [Key Concepts](#key-concepts) | [Why not Hibernate?](#why-not-hibernate) | [Why J8QL?](#why-j8ql)
 
-## J8sql by example
+### J8QL by example
 
-#### The Basics: <small>_Wrapping JDBC to make SQL Java 8 Friendly_</small>
 
 ```java
-// Create an immutable and threadsafe DB Object from a JDBC Datasource (1 db == 1 JDBC datasource/pool)
+// ------ raw SQLs execute ------ //
+// dataSource can be built via standard JDBC, or Pool like C3P0 or HikariCP for example
 DB db = new DBBuilder().build(dataSource);
 
-// IMPORTANT NOTE: 
-//    At DB creation, J8QL will scan the database table and column names to build its
-//    internal schema dictionary. This greatly reduce redundancy between database schema and 
-//    Java code, but you have to be ok with it. Its performance impact is close to none as it does it 
-//    only once per DB instance creation.
+// 1 runner == 1 database connection
+try (Runner runner = db.openRunner()) {
 
-// ------ simple SQL execute ------ //
-try (Runner runner = db.openRunner()){ // (1 runner == 1 database connection)
-    // execute a simple prepared statement 
-    runner.execute("insert into \"user\" (id, username, since) values (?,?,?)",12L,"johnd",1997);
+  // Execute raw SQL insert with parameters
+  runner.execute("insert into \"user\" (id,username,since) values (?,?,?)",
+                 12L,"john",1997);
 
-    // get back the user as a Map
-    Map johndMap = runner.list("select * from \"user\" where id = ?",12L).get(0);
+  // Execute a SQL select and return a list of Record (Record implements Map)
+  List<Record> records = runner.list("select * from \"user\" where id = ?",12L);
+  // users.size() == 1
+  // users.get(0).get("username") == "john"
 
-    // get back as a User object
-    User johndUser = runner.list(User.class,"select * from \"user\" where id = ?",12L).get(0);
+  // Execute same select but return as User.class
+  List<User> users = runner.list(User.class, "select * from \"user\" where id = ?", 12L);
+  // users.get(0).getUsername() == "john"
 
-    // or using Stream API
-    try (Stream<User> stream = runner.stream(User.class,"select * from \"user\" where id = ?",12L)){
-        johndUser = stream.findFirst().get();
-    } // stream will be closed, which will close the enclosing PreparedStatement
+  // Execute a sql select as stream
+  try (Stream<User> stream = runner.stream(User.class,"select * from \"user\" where id = ?",12L)){
+    User johnUser = stream.findFirst().get();
+    assertEquals(Long.valueOf(12L), johnUser.getId());
+    // johnUser.getUsername() == "john"
+  } // stream will be closed, which will close the enclosing PreparedStatement
 
 } // J8QL runner will be closed as well as the enclosing DB connection
-// ------ /simple SQL execute ------ //
+// ------ /raw SQLs execute ------ //
 
 // ------ Query Builder Examples ------ //
 try (Runner runner = db.openRunner()){ 
     
-    // Simple Insert Query via columns and values
-    InsertQuery<Integer> insertJohn = Query.insert("user").columns("id", "username", "since")
-                                        .values(12L, "john", 1997);
-    // execute the insert (by default, return the numOfRowChanged -same as PreprateStatement.executeUpdate)
-    int numOfRowChanged = runner.execute(insertJohn);
-    assertEquals(numOfRowChanged, 1);
+  // Simple Insert Query via columns and values
+  InsertQuery<Integer> insertJohn = Query.insert("user").columns("id", "username", "since")
+                                      .values(12L, "john", 1997);
+  // execute the insert (by default, return the numOfRowChanged -same as PreprateStatement.executeUpdate)
+  int numOfRowChanged = runner.execute(insertJohn);
+  assertEquals(numOfRowChanged, 1);
 
-    // mapOf is an static utility to create name/value hashmap
-    Map jenMap = mapOf("id",13L,"username","jen","since",2004);
+  // mapOf is an static utility to create name/value hashmap
+  Map jenMap = mapOf("id",13L,"username","jen","since",2004);
 
-    // Insert a Map or Pojo object, and returning the table PK as type Long
-    InsertQuery<Long> insertJen = Query.insert("user").value(jenMap).returningIdAs(Long.class);
-    // execute the insert
-    Long jenId = runner.execute(insertJen);
-    assertEquals(13L, jenId.longValue());
+  // Insert a Map or Pojo object, and returning the table PK as type Long
+  InsertQuery<Long> insertJen = Query.insert("user").value(jenMap).returningIdAs(Long.class);
+  // execute the insert
+  Long jenId = runner.execute(insertJen);
+  assertEquals(13L, jenId.longValue());
 
-    // Using Select Query to list all User.class
-    SelectQuery<User> selectUsers = Query.select(User.class).orderBy("since");
+  // Using Select Query to list all User.class
+  SelectQuery<User> selectUsers = Query.select(User.class).orderBy("since");
 
-    // List all users
-    List<User> users = runner.list(selectUsers);
-    assertEquals(12L, users.get(0).getId().longValue());
-    assertEquals(13L, users.get(1).getId().longValue());
+  // List all users
+  List<User> users = runner.list(selectUsers);
+  assertEquals(12L, users.get(0).getId().longValue());
+  assertEquals(13L, users.get(1).getId().longValue());
 
-    // Select the first and add a condition to an existing Query
-    // Note 1: Query objects immutable and any call return new ones (so, completely thread safe)
-    // Note 2: Runner::first will actually set if needed offset:0 and limit:1 to request only one.
-    User jenUser = runner.first(selectUsers.where("username","jen")).get(); // .first return Optional
-    assertEquals(13L, jenUser.getId().longValue());
+  // Select the first and add a condition to an existing Query
+  // Note 1: Query objects immutable and any call return new ones (so, completely thread safe)
+  // Note 2: Runner::first will actually set if needed offset:0 and limit:1 to request only one.
+  User jenUser = runner.first(selectUsers.where("username","jen")).get(); // .first return Optional
+  assertEquals(13L, jenUser.getId().longValue());
 
-    // Can use stream (make sure to close them)
-    try(Stream<User> userStream = runner.stream(selectUsers)){
-        List<User> tweentyFirstCenturyUsers = userStream.filter(u -> u.getSince() >= 2000).collect(toList());
-        assertEquals(1,tweentyFirstCenturyUsers.size());
-        assertEquals("jen", tweentyFirstCenturyUsers.get(0).getUsername());
-    }
+  // Can use stream (make sure to close them)
+  try(Stream<User> userStream = runner.stream(selectUsers)){
+    List<User> tweentyFirstCenturyUsers = userStream.filter(u -> u.getSince() >= 2000).collect(toList());
+    assertEquals(1,tweentyFirstCenturyUsers.size());
+    assertEquals("jen", tweentyFirstCenturyUsers.get(0).getUsername());
+  }
 
-    // Updating is as trivial, and can even return the whole Object
-    // Note: where clause name can have a convenient ",_OPERATOR_"
-    UpdateQuery<Integer> updateTo21stCentury = Query.update(User.class).columns("since").values(2000);
-    int numOfUpdatedUsers = runner.execute(updateTo21stCentury.where("since,<",2000));
-    assertEquals(1,numOfUpdatedUsers);
+  // Updating is as trivial, and can even return the whole Object
+  // Note: where clause name can have a convenient ",_OPERATOR_"
+  UpdateQuery<Integer> updateTo21stCentury = Query.update(User.class).columns("since").values(2000);
+  int numOfUpdatedUsers = runner.execute(updateTo21stCentury.where("since,<",2000));
+  assertEquals(1,numOfUpdatedUsers);
 
-    // Using a SelectQuery to count
-    // Note: t\This will do the appropriate select count... with the query info
-    long numOf21stCenturyUsers = runner.count(Query.select("user").where("since,>=",2000));
-    assertEquals(2,numOf21stCenturyUsers);
+  // Using a SelectQuery to count
+  // Note: t\This will do the appropriate select count... with the query info
+  long numOf21stCenturyUsers = runner.count(Query.select("user").where("since,>=",2000));
+  assertEquals(2,numOf21stCenturyUsers);
 }
 // ------ /Query Builder Examples------ //
 ```
+See full readme code at: [org.j8ql.test.ReadmeTest.java](https://github.com/BriteSnow/j8ql/blob/master/src/test/java/org/j8ql/test/ReadmeTest.java)
+
+### Key Concepts
+
+- **SQL Centric:** Rather than trying to fully abstract (and obscure) relational model and SQL from Java, J8QL provides a modern, fluid, and schema aware Java 8 API for SQL. J8QL offers raw sql APIs that cut lot of boilerplate code from JDBC, as well as, a set of Query builder APIs that provide fluid, flexible, thread safe, and OO friendly scheme to build and execute SQL queries. This allows developers to take full advantage of their database SQL in a very Java and OO optimized way.
+- **Schema Aware:** J8QL takes the angle to minimize redundancy between Database Schema and Java Class definition by scanning (and caching) the database schema. Why redefine the primary key as Java annotation when we have already have it in the database schema? This model allows to do run something like  ```Optional<User> = runner.first(Query.select(User.class).whereId(12L))``` with zero metadata on the Java side (composite keys also supported by just passing a Map or Pojo object with the appriate name/value properties)
+- **Java 8 Centric:** Java 8 offers a great opportunity to re-think Java libraries and J8QL is part of this re-thinking for ORM. J8QL is written in Java 8 for Java 8.
+- **Postgresql First:**  Depth before breath. Going deep in one database first allows J8QL to avoid lowest common denominator syndrome and expose the best functionality of one database before adding other ones. For example, J8QL offers seamless support for Postgresql awesome "no-sql/schema-less" capability (i.e. HSTORE datatype, see [postgesql as nosql](http://thebuild.com/presentations/pg-as-nosql-pgday-fosdem-2013.pdf)). 
 
 ### Limitations & Roadmap
 
-1. Today column and table names match to Pojo properties and class names are one-one case insensitive match. Obviously, a @Table(tableName) and @Column(columnName) is coming soon.
+1. One-One match between table/name and class/property name. @Table(tableName) and @Column(columnName) is coming soon.
 1. Probably will move the ```Runner::execute(...Query)``` to ```Runner:exec(...Query)``` to make it less confusing with the raw select ```Runner::execute(sql...)``` and ```Runner::executeUpdate(sql...)``` return values. 
 1. More advanced type coercion between type using Jomni mapper. Right now, we limit "advanced" type coercion to Enum and Object/Map to HSTORE, however, we should make it more generic. The question, is what is the cost of doing a ```preparedStatement.get...MetaData()``` if it just in memory lookup, then, we can do it for all query, if it has to go back, then, we need to think a little bit more. 
 
@@ -171,7 +180,7 @@ However, the catch, and there are always a catch in any technology, is that Hibe
 2. Second, Hibernate static model can make dynamic data representation, which is widely useful in REST/JSON based applications, virtually impossible or highly unoptimized. 
 3. And last but not least, I think Hibernate tries solve too many problems, and while it might looks attractive at first, developers that use 100% of hibernate often learn the hard way that some function would have been much better out of their ORM layer (e.g., level 2 caching is a good example). 
 
-So, this is where where J8QL comes in.
+So, this is where J8QL comes in.
 
 ## Why J8QL?
 

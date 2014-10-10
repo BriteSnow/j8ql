@@ -22,28 +22,37 @@ import static org.junit.Assert.assertEquals;
 public class ReadmeTest extends TestSupport {
 
 	@Test
-	public void simpleSqlInsertAndGet(){
+	public void rawSQLs(){
 		// dataSource can be built via standard JDBC, or Pool like C3P0 or HikariCP for example
 		DB db = new DBBuilder().build(dataSource);
 
-		try (Runner runner = db.openRunner()) { // (1 runner == 1 database connection)
+		// 1 runner == 1 database connection
+		try (Runner runner = db.openRunner()) {
 
-			runner.execute("insert into \"user\" (id,username,since) values (?,?,?)",12L,"john",1997);
+			// Execute raw SQL insert with parameters
+			runner.execute("insert into \"user\" (id,username,since) values (?,?,?)",
+					       12L,"john",1997);
 
-			Map johndMap = runner.list("select * from \"user\" where id = ?",12L).get(0);
-			assertEquals("john", johndMap.get("username"));
+			// Execute a SQL select and return a list of Record (Record implements Map)
+			List<Record> records = runner.list("select * from \"user\" where id = ?",12L);
+			// users.size() == 1
+			assertEquals(1, records.size());
+			// users.get(0).get("username") == "john"
+			assertEquals("john", records.get(0).get("username"));
 
-			User johndUser = runner.list(User.class,"select * from \"user\" where id = ?",12L).get(0);
-			assertEquals("john", johndUser.getUsername());
+			// Execute same select but return as User.class
+			List<User> users = runner.list(User.class, "select * from \"user\" where id = ?", 12L);
+			// users.get(0).getUsername() == "john"
+			assertEquals("john", users.get(0).getUsername());
 
-			// or using stream
+			// Execute a sql select as stream
 			try (Stream<User> stream = runner.stream(User.class,"select * from \"user\" where id = ?",12L)){
-				johndUser = stream.findFirst().get();
-				assertEquals(Long.valueOf(12L), johndUser.getId());
-				assertEquals("john", johndUser.getUsername());
-				assertEquals(Integer.valueOf(1997), johndUser.getSince());
+				User johnUser = stream.findFirst().get();
+				assertEquals(Long.valueOf(12L), johnUser.getId());
+				// johnUser.getUsername() == "john"
+				assertEquals("john", johnUser.getUsername());
+				assertEquals(Integer.valueOf(1997), johnUser.getSince());
 			} // stream will be closed, which will close the enclosing PreparedStatement
-
 
 		} // J8QL runner will be closed as well as the enclosing DB connection
 	}
