@@ -1,0 +1,18 @@
+# Mac stuff, ignore
+.DS_Store
+
+# since we use Maven, ant buil.xml will be private for each developers
+#  (if they need their own scripts to do some stuff)
+build.xml
+# maven target (we definitely do not want this one in git)
+target/
+
+dev-notes.md
+
+# Ignore Intellij files
+.idea/
+*.iml
+
+# Ignore Sublime files
+*.sublime-project
+*.sublime-workspace
