@@ -48,7 +48,7 @@ public class UpdateQueryTest extends TestSupport {
 			// --------- Single Update --------- //
 			// update a single contact
 			ub = update().into("contact").columns("name").values("Michael").where(and("id",1L));
-			numUpdated = runner.execute(ub);
+			numUpdated = runner.exec(ub);
 			assertEquals(1, numUpdated);
 			// check contact
 			Map contactMap = runner.first(select("contact").where(and("id",1L))).get();
@@ -58,7 +58,7 @@ public class UpdateQueryTest extends TestSupport {
 			// --------- Multiple Update --------- //
 			ub = update("contact").columns("title").values("Dev").where(and("title","developer"));
 
-			numUpdated = runner.execute(ub);
+			numUpdated = runner.exec(ub);
 			assertEquals(2, numUpdated);
 			List<Contact> developers = runner.list(Contact.class, "select * from contact where title = ? ", "Dev");
 			assertEquals(2, developers.size());
@@ -92,7 +92,7 @@ public class UpdateQueryTest extends TestSupport {
 
 		try (Runner runner = db.openRunner()) {
 			UpdateQuery ub = update("contact").columns("title").values("Dev").whereId(1);
-			runner.execute(ub);
+			runner.exec(ub);
 
 			assertEquals(1L,runner.count(select("contact").where(and("title","Dev"))));
 		}

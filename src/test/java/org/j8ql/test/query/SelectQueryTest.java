@@ -110,7 +110,7 @@ public class SelectQueryTest extends TestSupport {
 		DB db = new DBBuilder().build(dataSource);
 
 		try(Runner runner = db.openRunner()){
-			runner.execute(insert(User.class).columns("username","firstName").values("mhork","Mike"));
+			runner.exec(insert(User.class).columns("username","firstName").values("mhork","Mike"));
 			List<User> users = runner.list(select(User.class).where("firstName","Mike"));
 		}
 	}

@@ -71,10 +71,10 @@ public class RunnerImpl implements Runner {
 
 	// --------- InsertQuery --------- //
 	@Override
-	public <T> T execute(InsertQuery<T> insertBuilder) {
+	public <T> T exec(InsertQuery<T> insertBuilder) {
 		String sql = db.sql(insertBuilder);
 		Object[] values = db.values(insertBuilder);
-		return execute(insertBuilder, sql, values);
+		return exec(insertBuilder, sql, values);
 	}
 
 	@Override
@@ -97,10 +97,10 @@ public class RunnerImpl implements Runner {
 
 	// --------- UpdateQuery --------- //
 	@Override
-	public <T> T execute(UpdateQuery<T> updateBuilder){
+	public <T> T exec(UpdateQuery<T> updateBuilder){
 		String sql = db.sql(updateBuilder);
 		Object[] values = db.values(updateBuilder);
-		return execute(updateBuilder, sql, values);
+		return exec(updateBuilder, sql, values);
 	}
 
 	@Override
@@ -124,10 +124,10 @@ public class RunnerImpl implements Runner {
 
 	// --------- DeleteQuery --------- //
 	@Override
-	public <T> T execute(DeleteQuery<T> deleteBuilder) {
+	public <T> T exec(DeleteQuery<T> deleteBuilder) {
 		String sql = db.sql(deleteBuilder);
 		Object[] values = db.values(deleteBuilder);
-		return execute(deleteBuilder, sql, values);
+		return exec(deleteBuilder, sql, values);
 	}
 
 	@Override
@@ -164,7 +164,7 @@ public class RunnerImpl implements Runner {
 	// --------- /batch --------- //
 
 	// --------- Private Helpers --------- //
-	private <T> T execute(IUDQuery<T> builder, String sql, Object[] values) {
+	private <T> T exec(IUDQuery<T> builder, String sql, Object[] values) {
 		Class<T> asClass = builder.getAsClass();
 		boolean hasReturning = builder.hasReturning();
 		String tableName = db.getTableDef(builder).getName();

@@ -38,8 +38,8 @@ public class RunnerProxy implements Runner {
 	}
 
 	@Override
-	public <T> T execute(InsertQuery<T> insertBuilder) {
-		return runner.execute(insertBuilder);
+	public <T> T exec(InsertQuery<T> insertBuilder) {
+		return runner.exec(insertBuilder);
 	}
 
 	@Override
@@ -53,8 +53,8 @@ public class RunnerProxy implements Runner {
 	}
 
 	@Override
-	public <T> T execute(UpdateQuery<T> updateBuilder) {
-		return runner.execute(updateBuilder);
+	public <T> T exec(UpdateQuery<T> updateBuilder) {
+		return runner.exec(updateBuilder);
 	}
 
 	@Override
@@ -68,8 +68,8 @@ public class RunnerProxy implements Runner {
 	}
 
 	@Override
-	public <T> T execute(DeleteQuery<T> deleteBuilder) {
-		return runner.execute(deleteBuilder);
+	public <T> T exec(DeleteQuery<T> deleteBuilder) {
+		return runner.exec(deleteBuilder);
 	}
 
 	@Override

@@ -54,7 +54,7 @@ try (Runner runner = db.openRunner()){
   InsertQuery<Integer> insertJohn = Query.insert("user").columns("id", "username", "since")
                                       .values(12L, "john", 1997);
   // execute the insert (by default, return the numOfRowChanged -same as PreprateStatement.executeUpdate)
-  int numOfRowChanged = runner.execute(insertJohn);
+  int numOfRowChanged = runner.exec(insertJohn);
   assertEquals(numOfRowChanged, 1);
 
   // mapOf is an static utility to create name/value hashmap
@@ -63,7 +63,7 @@ try (Runner runner = db.openRunner()){
   // Insert a Map or Pojo object, and returning the table PK as type Long
   InsertQuery<Long> insertJen = Query.insert("user").value(jenMap).returningIdAs(Long.class);
   // execute the insert
-  Long jenId = runner.execute(insertJen);
+  Long jenId = runner.exec(insertJen);
   assertEquals(13L, jenId.longValue());
 
   // Using Select Query to list all User.class
@@ -90,7 +90,7 @@ try (Runner runner = db.openRunner()){
   // Updating is as trivial, and can even return the whole Object
   // Note: where clause name can have a convenient ",_OPERATOR_"
   UpdateQuery<Integer> updateTo21stCentury = Query.update(User.class).columns("since").values(2000);
-  int numOfUpdatedUsers = runner.execute(updateTo21stCentury.where("since,<",2000));
+  int numOfUpdatedUsers = runner.exec(updateTo21stCentury.where("since,<",2000));
   assertEquals(1,numOfUpdatedUsers);
 
   // Using a SelectQuery to count
@@ -112,7 +112,6 @@ See full readme code at: [org.j8ql.test.ReadmeTest.java](https://github.com/Brit
 ### Limitations & Roadmap
 
 1. One-One match between table/name and class/property name. @Table(tableName) and @Column(columnName) is coming soon.
-1. Probably will move the ```Runner::execute(...Query)``` to ```Runner:exec(...Query)``` to make it less confusing with the raw select ```Runner::execute(sql...)``` and ```Runner::executeUpdate(sql...)``` return values. 
 1. More advanced type coercion between type using Jomni mapper. Right now, we limit "advanced" type coercion to Enum and Object/Map to HSTORE, however, we should make it more generic. The question, is what is the cost of doing a ```preparedStatement.get...MetaData()``` if it just in memory lookup, then, we can do it for all query, if it has to go back, then, we need to think a little bit more. 
 
 ### Other advanced stuff

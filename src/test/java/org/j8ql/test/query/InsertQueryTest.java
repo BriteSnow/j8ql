@@ -42,18 +42,18 @@ public class InsertQueryTest extends TestSupport {
 
 			// create a new InsertQuery from baseInsert with the values.
 			InsertQuery<Integer> simpleInsert = baseInsert.values(1L,"mike","developer");
-			int numberOfCreated = runner.execute(simpleInsert);
+			int numberOfCreated = runner.exec(simpleInsert);
 			assertEquals(1,numberOfCreated);
 
 			// insert returning the column id as Long
 			InsertQuery<Long> insertWithId = baseInsert.returningIdAs(Long.class).values(2L,"jen","manager");
-			Long userId = runner.execute(insertWithId);
+			Long userId = runner.exec(insertWithId);
 			assertEquals((Long)2L,userId);
 
 
 			// or we can can return the contact object itself with some specific columns
 			InsertQuery<User> insertWithUser = baseInsert.returning(User.class, "id", "username", "title").values(3L,"paul","manager");
-			User user = runner.execute(insertWithUser);
+			User user = runner.exec(insertWithUser);
 			assertEquals((Long)3L,user.getId());
 			assertEquals("paul",user.getUsername());
 		}
@@ -66,7 +66,7 @@ public class InsertQueryTest extends TestSupport {
 		try (Runner runner = db.openRunner()){
 			InsertQuery<Integer> ib = insert().columns("id","username","title").into("user");
 			for (Object[] row : users) {
-				int numUpdated = runner.execute(ib.values(row));
+				int numUpdated = runner.exec(ib.values(row));
 				assertEquals(1, numUpdated);
 			}
 
@@ -82,7 +82,7 @@ public class InsertQueryTest extends TestSupport {
 		try (Runner runner = db.openRunner()) {
 			InsertQuery<Long> ib = insert().columns("id", "username", "title").into("user").returningIdAs(Long.class);
 			for (Object[] row : users) {
-				Long id = runner.execute(ib.values(row));
+				Long id = runner.exec(ib.values(row));
 				assertEquals(row[0], id);
 			}
 		}
@@ -95,7 +95,7 @@ public class InsertQueryTest extends TestSupport {
 			InsertQuery<User> ib = insert().columns("id", "username", "title").into("user").returning(User.class, "id", "username", "title");
 
 			for (Object[] row : users) {
-				User user = runner.execute(ib.values(row));
+				User user = runner.exec(ib.values(row));
 				assertEquals(row[1], user.getUsername());
 			}
 		}
@@ -108,7 +108,7 @@ public class InsertQueryTest extends TestSupport {
 			InsertQuery<User> ib = insert().columns("id", "username", "title").into("user").returning(User.class);
 
 			for (Object[] row : users) {
-				User user = runner.execute(ib.values(row));
+				User user = runner.exec(ib.values(row));
 				assertEquals(row[1], user.getUsername());
 			}
 		}
@@ -136,17 +136,17 @@ public class InsertQueryTest extends TestSupport {
 
 			// insert with a Map
 			Map userMap = mapOf("id", 1L, "username", "jon", "title", "director");
-			int numUpdated = runner.execute(ib.value(userMap));
+			int numUpdated = runner.exec(ib.value(userMap));
 			assertEquals(1, numUpdated);
 
 			// insert with a Type object
 			User user = new User().setId(2L).setUsername("mike").setTitle("manager");
-			numUpdated = runner.execute(ib.value(user));
+			numUpdated = runner.exec(ib.value(user));
 			assertEquals(1, numUpdated);
 
 			// with a specific set of columns
 			user = new User().setId(3L).setUsername("jen").setTitle("manager");
-			runner.execute(ib.columns("id", "username").value(user));
+			runner.exec(ib.columns("id", "username").value(user));
 
 			List<User> users = runner.list(User.class, "select * from \"user\"");
 			assertEquals(3, users.size());
@@ -161,7 +161,7 @@ public class InsertQueryTest extends TestSupport {
 		try (Runner runner = db.openRunner()) {
 			Label label = new Label();
 			label.setName("Test Label");
-			runner.execute(insert("label").value(label));
+			runner.exec(insert("label").value(label));
 		}
 	}
 
@@ -173,7 +173,7 @@ public class InsertQueryTest extends TestSupport {
 			// test exception when invalid column
 			User user = new User().setId(4L).setUsername("brian").setTitle("manager");
 			try {
-				runner.execute(insert().into("user").columns("id", "username", "foo").value(user));
+				runner.exec(insert().into("user").columns("id", "username", "foo").value(user));
 			} catch (RSQLException re) {
 				// exception should be something like: ERROR: column "foo" of relation "contact" does not exist
 				// So, simply test that the message contain "foo"

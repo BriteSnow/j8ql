@@ -40,10 +40,10 @@ public class DeleteQueryTest extends TestSupport {
 			// make sure we start with 3 items
 			assertEquals(3L, runner.executeCount("select count(*) from contact"));
 
-			assertEquals((Integer)1, runner.execute(delete("contact").where(and("id", 2L))));
+			assertEquals((Integer)1, runner.exec(delete("contact").where(and("id", 2L))));
 			assertEquals(2L, runner.executeCount("select count(*) from contact"));
 
-			runner.execute(delete("contact").where("title","developer"));
+			runner.exec(delete("contact").where("title","developer"));
 			assertEquals(0L, runner.executeCount("select count(*) from contact"));
 		}
 	}
@@ -59,13 +59,13 @@ public class DeleteQueryTest extends TestSupport {
 			assertEquals(3L,count);
 
 			DeleteQuery baseDelete = delete("contact");
-			runner.execute(baseDelete.whereId(1L));
+			runner.exec(baseDelete.whereId(1L));
 			assertEquals(2L,runner.count(sb));
 
-			runner.execute(baseDelete.whereId(mapOf("id", 2)));
+			runner.exec(baseDelete.whereId(mapOf("id", 2)));
 			assertEquals(1L,runner.count(sb));
 
-			runner.execute(baseDelete.whereId(new Contact().setId(3L)));
+			runner.exec(baseDelete.whereId(new Contact().setId(3L)));
 			assertEquals(0L,runner.count(sb));
 		}
 	}

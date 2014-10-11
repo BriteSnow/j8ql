@@ -21,7 +21,7 @@ public interface Runner extends AutoCloseable {
 	// --------- /SelectQuery --------- //
 
 	// --------- InsertQuery --------- //
-	<T> T execute(InsertQuery<T> insertBuilder);
+	<T> T exec(InsertQuery<T> insertBuilder);
 
 	<T> List<T> list(InsertQuery<T> insertBuilder);
 
@@ -29,7 +29,7 @@ public interface Runner extends AutoCloseable {
 	// --------- /InsertQuery --------- //
 
 	// --------- UpdateQuery --------- //
-	<T> T execute(UpdateQuery<T> updateBuilder);
+	<T> T exec(UpdateQuery<T> updateBuilder);
 
 	<T> List<T> list(UpdateQuery<T> updateBuilder);
 
@@ -37,7 +37,7 @@ public interface Runner extends AutoCloseable {
 	// --------- /UpdateQuery --------- //
 
 	// --------- DeleteQuery --------- //
-	<T> T execute(DeleteQuery<T> deleteBuilder);
+	<T> T exec(DeleteQuery<T> deleteBuilder);
 
 	<T> List<T> list(DeleteQuery<T> deleteBuilder);
 
@@ -62,7 +62,7 @@ public interface Runner extends AutoCloseable {
 	Optional<Record> executeWithSingleReturn(String sql, Object... values);
 	// --------- /j8ql High Level Execute --------- //
 
-	// --------- j8ql Low Level SQL Execute --------- //
+	// --------- j8ql Raw SQL Execute --------- //
 
 	/**
 	 * Create a JDBC PreparedStatement, call executeUpdate() and return its result.
@@ -80,7 +80,7 @@ public interface Runner extends AutoCloseable {
 	 * @return the boolean returned by the JDBC prepared statement .execute
 	 */
 	boolean execute(String sql, Object... values);
-	// --------- /j8ql Low Level SQL Execute --------- //
+	// --------- /j8ql Raw SQL Execute --------- //
 
 	// --------- Stmt Factory --------- //
 	PStmt newPQuery(String sql);

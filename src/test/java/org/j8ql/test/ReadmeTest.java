@@ -68,7 +68,7 @@ public class ReadmeTest extends TestSupport {
 			InsertQuery<Integer> insertJohn = Query.insert("user").columns("id", "username", "since")
 					                            .values(12L, "john", 1997);
 			// execute the insert (by default, return the numOfRowChanged -same as PreprateStatement.executeUpdate)
-			int numOfRowChanged = runner.execute(insertJohn);
+			int numOfRowChanged = runner.exec(insertJohn);
 			assertEquals(numOfRowChanged, 1);
 
 			// mapOf is an static utility to create name/value hashmap
@@ -77,7 +77,7 @@ public class ReadmeTest extends TestSupport {
 			// Insert a Map or Pojo object, and returning the table PK as type Long
 			InsertQuery<Long> insertJen = Query.insert("user").value(jenMap).returningIdAs(Long.class);
 			// execute the insert
-			Long jenId = runner.execute(insertJen);
+			Long jenId = runner.exec(insertJen);
 			assertEquals(13L, jenId.longValue());
 
 			// Using Select Query to list all User.class
@@ -104,7 +104,7 @@ public class ReadmeTest extends TestSupport {
 			// Updating is as trivial, and can even return the whole Object
 			// Note: where clause name can have a convenient ",_OPERATOR_"
 			UpdateQuery<Integer> updateTo21stCentury = Query.update(User.class).columns("since").values(2000);
-			int numOfUpdatedUsers = runner.execute(updateTo21stCentury.where("since,<",2000));
+			int numOfUpdatedUsers = runner.exec(updateTo21stCentury.where("since,<",2000));
 			assertEquals(1,numOfUpdatedUsers);
 
 			// Using a SelectQuery to count
