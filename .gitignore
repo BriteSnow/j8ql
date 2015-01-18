@@ -7,7 +7,7 @@ build.xml
 # maven target (we definitely do not want this one in git)
 target/
 
-dev-notes.md
+dev/
 
 # Ignore Intellij files
 .idea/

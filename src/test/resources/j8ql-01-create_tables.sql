@@ -1,5 +1,4 @@
--- IMPORTANT: This file should be run when connected in the josql_test_db 
---            with  j8ql_user 
+-- to be run as j8ql_user/j8ql_db
 SET search_path = public;
 
 -- --------- user --------- --
