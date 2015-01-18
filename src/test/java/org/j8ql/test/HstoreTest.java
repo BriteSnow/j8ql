@@ -86,8 +86,7 @@ public class HstoreTest extends TestSupport {
 
 			Record r  = runner.list("select * from \"user\" where username = ?","test_testSQLHstoreWithMap").get(0);
 			User user = db.mapper.as(User.class, r);
-			System.out.println("r.pref: " + r.get("pref"));
-			System.out.println("user: " + user.getPref());
+			assertEquals((Long)368L, user.getPref().getRank());
 		}
 	}
 

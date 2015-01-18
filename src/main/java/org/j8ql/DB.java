@@ -327,11 +327,16 @@ public class DB {
 						}else{
 							// TODO: for now, nothing, it will probably fail. Later need to handle ordinal if number
 						}
-					}else if( !isDbCompatibleType(valClass)) {
-						// ParameterMetaData pmd = pStmt.getParameterMetaData();
-						System.out.println("not dbCompatible: " + valClass);
+					}else if( !isStandardDbCompatibleType(valClass)) {
+						ParameterMetaData pmd = pStmt.getParameterMetaData();
+						String dbTypeName = pmd.getParameterTypeName(i + 1);
+						if ("hstore".equals(dbTypeName)){
+							val = mapper.asMap(val);
+						}else{
+							throw new DBException(DBError.INCOMPATIBLE_JAVA_TYPE_WITH_COLUMN_TYPE,valClass,dbTypeName);
+						}
 						// TODO: will need to handle the case where the target type is a varchar/text (we should serialize to json in this case)
-						val = mapper.asMap(val);
+
 					}
 					// --------- /More Value Post Processing When Needed --------- //
 					pStmt.setObject(cidx, val);
@@ -345,7 +350,7 @@ public class DB {
 
 	// Broad assumptions
 	static private final Set<String> dbCompatiblePackages = Maps.setOf("java.lang", "java.sql", "java.math");
-	private boolean isDbCompatibleType(Class cls) {
+	private boolean isStandardDbCompatibleType(Class cls) {
 		return (cls.isPrimitive() || Map.class.isAssignableFrom(cls) || dbCompatiblePackages.contains(cls.getPackage().getName()));
 	}
 
