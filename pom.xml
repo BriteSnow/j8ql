@@ -6,12 +6,42 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<groupId>org.j8ql</groupId>
 	<artifactId>j8ql</artifactId>
-	<packaging>jar</packaging>
 	<version>0.5.0-SNAPSHOT</version>
 	<name>j8ql</name>
-	<url>http://maven.apache.org</url>
+
+	<packaging>jar</packaging>
+	<url>https://github.com/BriteSnow/j8ql</url>
+
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<url>https://github.com/BriteSnow/j8ql.git</url>
+		<connection>scm:git:git@github.com:BriteSnow/j8ql.git</connection>
+		<developerConnection>scm:git:git@github.com:BriteSnow/j8ql.git</developerConnection>
+	</scm>
+	
+	<developers>
+		<developer>
+			<id>jeremychone</id>
+			<name>Jeremy Chone</name>
+			<email>jeremy.chone@gmail.com</email>
+		</developer>
+	</developers>
 
 	<build>
 		<finalName>j8ql</finalName>
@@ -35,8 +65,38 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 		</plugins>
 	</build>
 
+	<profiles>
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.1</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>	
+
 	<dependencies>
-		
+
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
@@ -48,7 +108,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 			<artifactId>jomni</artifactId>
 			<version>0.2.1-SNAPSHOT</version>
 		</dependency>
-
 
 		<!-- Provided Dependencies -->
 		<dependency>
@@ -88,16 +147,5 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 		<!-- /Provided Dependencies -->
 
 	</dependencies>
-	
-	<distributionManagement>
-		<repository>
-			<id>britesnow-nexus-releases</id>
-			<url>http://nexus.britesnow.com/nexus/content/repositories/releases</url>
-		</repository>
-		<snapshotRepository>
-			<id>britesnow-nexus-snapshots</id>
-			<url>http://nexus.britesnow.com/nexus/content/repositories/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
 	
 </project>
