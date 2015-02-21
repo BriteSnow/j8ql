@@ -9,9 +9,12 @@ import org.j8ql.DB;
 import org.j8ql.DBBuilder;
 import org.j8ql.Record;
 import org.j8ql.Runner;
+import org.j8ql.query.InsertQuery;
+import org.j8ql.query.Query;
 import org.j8ql.query.SelectQuery;
 import org.j8ql.test.TestSupport;
 import org.j8ql.test.app.Contact;
+import org.j8ql.test.app.Ticket;
 import org.j8ql.test.app.User;
 import org.junit.Test;
 
@@ -104,8 +107,29 @@ public class SelectQueryTest extends TestSupport {
 		}
 	}
 
+	@Test
+	public void selectWhereNull(){
+		DB db = new DBBuilder().build(dataSource);
+		try (Runner runner = db.openRunner()){
+			Long projectId = runner.exec(Query.insert("Project").value(mapOf("name","selectWhereNull Project")).returningIdAs(Long.class));
+			// one ticket with a projectId
+			runner.exec(Query.insert("Ticket").value(mapOf("subject", "selectWhereNull Ticket 01", "projectId", projectId)));
+			// insert two others without the projectId
+			runner.exec(Query.insert("Ticket").value(mapOf("subject","selectWhereNull Ticket 02")));
+			runner.exec(Query.insert("Ticket").value(mapOf("subject","selectWhereNull Ticket 03")));
 
-		@Test
+			// should have two tickets with projectId IS NULL
+			assertEquals(2, runner.list(Query.select(Ticket.class).where("projectId", null)).size());
+			// same as above, since no operator means null
+			assertEquals(2, runner.list(Query.select(Ticket.class).where("projectId,=", null)).size());
+
+			// should have one ticket with not null
+			assertEquals(1,runner.list(Query.select(Ticket.class).where("projectId,!=",null)).size());
+
+		}
+	}
+
+	@Test
 	public void createWithCaseColumns(){
 		DB db = new DBBuilder().build(dataSource);
 
@@ -131,9 +155,9 @@ public class SelectQueryTest extends TestSupport {
 			contact = runner.first(select(Contact.class).whereId(new Contact().setId(3L))).get();
 			assertEquals("paul", contact.getName());
 		}
-
-
 	}
+
+
 
 
 }

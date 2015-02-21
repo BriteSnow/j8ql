@@ -38,12 +38,30 @@ public class FieldOpValue implements Elem {
 	// --------- Elem Implementation --------- //
 	@Override
 	public StringBuilder buildSql(StringBuilder sb){
-		return sb.append(SqlUtils.escapeColumnName(fieldOp.name)).append(" ").append(fieldOp.operator).append(" ?");
+		// add the column name
+		sb.append(SqlUtils.escapeColumnName(fieldOp.name));
+
+		// do the "IS NULL" or "IS NOT NULL" if value is null
+		if (value == null){
+			if ("=".equals(fieldOp.operator)){
+				return sb.append(" IS NULL");
+			}else if ("!=".equals(fieldOp.operator)){
+				return sb.append(" IS NOT NULL");
+			}
+		}
+
+		return sb.append(" ").append(fieldOp.operator).append(" ?");
 	}
 
 	@Override
 	public List buildValues(List values) {
-		values.add(value);
+		// if it is a "IS ... NULL", then, we do not need to add the value
+		if (value == null && ("=".equals(fieldOp.operator) || "!=".equals(fieldOp.operator))){
+			// do not not add this null value to the list, as the statement will have already the "NULL" value
+		}
+		else{
+			values.add(value);
+		}
 		return values;
 	}
 
