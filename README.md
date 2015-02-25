@@ -141,33 +141,17 @@ Long jenId = (Long) runner.executeWithReturn("insert into contact (id,name) valu
 
 
 ## Maven Info 
+[j8ql Maven version](http://mvnrepository.com/artifact/org.j8ql/j8ql)
 
-Just add the following dependency in your pom.xml (and the respository below)
+Just add the following dependency in your pom.xml (J8QL is on maven central)
 ```xml
     <dependency>
       <groupId>org.j8ql</groupId>
       <artifactId>j8ql</artifactId>
-      <version>0.5.0-SNAPSHOT</version>
+      <version>0.5.3-SNAPSHOT</version>
     </dependency>   
 ```
 
-For now, J8QL is not yet on maven central (will be soon), so add the following repository to your pom.xml.
-
-```xml
-<repositories>  
-    <!-- for j8ql -->
-    <repository>
-        <id>BriteSnow Releases</id>
-        <url>http://nexus.britesnow.com/nexus/content/repositories/releases/</url>
-    </repository>
-    <repository>
-        <id>BriteSnow Snapshots</id>
-        <url>http://nexus.britesnow.com/nexus/content/repositories/snapshots/</url>
-    </repository>   
-    <!-- /for j8ql -->
-</repositories>
-
-```
 
 ## Why Not Hibernate?
 
