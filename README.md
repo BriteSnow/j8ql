@@ -148,7 +148,7 @@ Just add the following dependency in your pom.xml (J8QL is on maven central)
     <dependency>
       <groupId>org.j8ql</groupId>
       <artifactId>j8ql</artifactId>
-      <version>0.5.3-SNAPSHOT</version>
+      <version>0.5.3</version>
     </dependency>   
 ```
 
