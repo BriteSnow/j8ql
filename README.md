@@ -48,11 +48,13 @@ try (Runner runner = db.openRunner()) {
 // ------ /raw SQLs execute ------ //
 
 // ------ Query Builder Examples ------ //
-try (Runner runner = db.openRunner()){ 
-    
+DB db = new DBBuilder().build(dataSource);
+
+try (Runner runner = db.openRunner()){
+
   // Simple Insert Query via columns and values
   InsertQuery<Integer> insertJohn = Query.insert("user").columns("id", "username", "since")
-                                      .values(12L, "john", 1997);
+                                  .values(12L, "john", 1997);
   // execute the insert (by default, return the numOfRowChanged -same as PreprateStatement.executeUpdate)
   int numOfRowChanged = runner.exec(insertJohn);
   assertEquals(numOfRowChanged, 1);
@@ -90,13 +92,14 @@ try (Runner runner = db.openRunner()){
   // Updating is as trivial, and can even return the whole Object
   // Note: where clause name can have a convenient ",_OPERATOR_"
   UpdateQuery<Integer> updateTo21stCentury = Query.update(User.class).columns("since").values(2000);
-  int numOfUpdatedUsers = runner.exec(updateTo21stCentury.where("since,<",2000));
+  int numOfUpdatedUsers = runner.exec(updateTo21stCentury.where("since;<",2000));
   assertEquals(1,numOfUpdatedUsers);
 
   // Using a SelectQuery to count
   // Note: t\This will do the appropriate select count... with the query info
-  long numOf21stCenturyUsers = runner.count(Query.select("user").where("since,>=",2000));
+  long numOf21stCenturyUsers = runner.count(Query.select("user").where("since;>=",2000));
   assertEquals(2,numOf21stCenturyUsers);
+
 }
 // ------ /Query Builder Examples------ //
 ```
@@ -114,7 +117,10 @@ See full readme code at: [org.j8ql.test.ReadmeTest.java](https://github.com/Brit
 1. One-One match between table/name and class/property name. @Table(tableName) and @Column(columnName) is coming soon.
 1. More advanced type coercion between type using Jomni mapper. Right now, we limit "advanced" type coercion to Enum and Object/Map to HSTORE, however, we should make it more generic. The question, is what is the cost of doing a ```preparedStatement.get...MetaData()``` if it just in memory lookup, then, we can do it for all query, if it has to go back, then, we need to think a little bit more. 
 
-### Other advanced stuff
+### Other Examples
+
+
+#### Join
 
 ```java
 
@@ -127,6 +133,49 @@ Record record = rec.get();
 // project name for ticket 0 is project 0.
 assertEquals(projects[0][1],rec.get().get("projectName"));
 
+
+```
+
+#### Column and Value Value (e.g. tsv search)
+
+The following Java Query building:
+```java
+Query.select(Ticket.class).where("to_tsvector(ticket.subject);@@;to_tsquery(?)", "management");
+```
+
+Will generate the following sql statement:
+```sql
+select "ticket".* from "ticket" where to_tsvector(ticket.subject) @@ to_tsquery(?)
+```
+
+Full example: 
+
+```java
+    // dataSource can be built via standard JDBC, or Pool like C3P0 or HikariCP for example
+    DB db = new DBBuilder().build(dataSource);
+
+    try (Runner runner = db.openRunner()) {
+      // insert a ticket
+      runner.execute("insert into ticket (id,subject) values (?,?)", 1L, "test_ticket first ticket for the manager");
+      runner.execute("insert into ticket (id,subject) values (?,?)", 2L, "test_ticket second ticket for a manager");
+      runner.execute("insert into ticket (id,subject) values (?,?)", 3L, "test_ticket third ticket for a staff");
+
+      // Build the tsv query
+      // NOTE 1: You can add third part (with the second ";") and in this case, it will be columnNameOrFunction;operator;valueFunction
+      // NOTE 2: The first "columnName" can be a function, and in this case, it won't be escaped;
+      // NOTE 3: the last ";to_tsquery(?)" allow to optionally add a function value to the query (which is what we need for tsv search).
+      SelectQuery<Ticket> tsvSelect = Query.select(Ticket.class).where("to_tsvector(ticket.subject);@@;to_tsquery(?)", "management");
+      System.out.println("sql: " + db.sql(tsvSelect));
+      // sql: select "ticket".* from "ticket" where to_tsvector(ticket.subject) @@ to_tsquery(?)
+
+      List<Ticket> tickets = runner.list(tsvSelect);
+      assertEquals(2, tickets.size()); // 2 because management and manager have the same lexeme "manag"
+    }
+```
+
+#### Misc
+
+```java
 // execute on a String SQL return the boolean returned by the preparedStatement call
 // NOTE: we might change that to match the .execute of a Query. P
 boolean b = runner.execute("insert into contact (id,name) values (?,?)", 1,"Mike");
@@ -136,7 +185,6 @@ int r = runner.executeUpdate("insert into contact (id,name) values (?,?)", 2,"An
 
 //  can use the sql returning in pure SQL too
 Long jenId = (Long) runner.executeWithReturn("insert into contact (id,name) values (?,?) returning id", 3,"Jen").
-
 ```
 
 

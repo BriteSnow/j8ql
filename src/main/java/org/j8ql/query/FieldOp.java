@@ -13,32 +13,41 @@ import java.util.List;
 * <p></p>
 */ // --------- Public Utilities Class --------- //
 public class FieldOp {
-	private final Splitter splitter =  Splitter.on(',').trimResults().omitEmptyStrings();
+	private final Splitter splitter =  Splitter.on(';').trimResults().omitEmptyStrings();
+	private final String defaultOperator = "=";
 
 	public final String key;
 	public final String operator;
 	public final String name;
+	public final String valueFunction;
 
 	public FieldOp(String key){
 		this.key = key;
-		if (key.indexOf(',') != -1){
+		// Not sure if doing
+		if (key.indexOf(';') != -1){
 			List<String> nameOperator = splitter.splitToList(key);
 			name = nameOperator.get(0);
-			operator = nameOperator.get(1);
+			if (nameOperator.size() > 1){
+				operator = nameOperator.get(1);
+			}else{
+				operator = defaultOperator;
+			}
+			if (nameOperator.size() > 2) {
+				valueFunction = nameOperator.get(2);
+			}else{
+				valueFunction = null;
+			}
+
 		}else{
 			name = key;
 			operator = "=";
+			valueFunction = null;
 		}
 	}
 
-	public FieldOp(String operator, String name) {
-		this.key = null;
-		this.operator = operator;
-		this.name = name;
-	}
 
 	@Override
 	public String toString() {
-		return name + " " + operator;
+		return name + " " + operator + ((valueFunction != null)?valueFunction:"");
 	}
 }

@@ -38,7 +38,7 @@ public class FieldOpValue implements Elem {
 	// --------- Elem Implementation --------- //
 	@Override
 	public StringBuilder buildSql(StringBuilder sb){
-		// add the column name
+		// append the escaped column name
 		sb.append(SqlUtils.escapeColumnName(fieldOp.name));
 
 		// do the "IS NULL" or "IS NOT NULL" if value is null
@@ -50,7 +50,17 @@ public class FieldOpValue implements Elem {
 			}
 		}
 
-		return sb.append(" ").append(fieldOp.operator).append(" ?");
+		// append the operator
+		sb.append(" ").append(fieldOp.operator);
+
+		// append the "?" or the valueFunction
+		sb.append(" ");
+		if (fieldOp.valueFunction != null){
+			sb.append(fieldOp.valueFunction);
+		}else{
+			sb.append("?"); // default if no valueFunction
+		}
+		return sb;
 	}
 
 	@Override

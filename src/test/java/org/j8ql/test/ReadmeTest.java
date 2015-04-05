@@ -8,6 +8,7 @@ import org.j8ql.query.InsertQuery;
 import org.j8ql.query.Query;
 import org.j8ql.query.SelectQuery;
 import org.j8ql.query.UpdateQuery;
+import org.j8ql.test.app.Ticket;
 import org.j8ql.test.app.User;
 import org.junit.Test;
 
@@ -102,16 +103,40 @@ public class ReadmeTest extends TestSupport {
 			}
 
 			// Updating is as trivial, and can even return the whole Object
-			// Note: where clause name can have a convenient ",_OPERATOR_"
+			// Note: where clause name can have a convenient ";_OPERATOR_"
 			UpdateQuery<Integer> updateTo21stCentury = Query.update(User.class).columns("since").values(2000);
-			int numOfUpdatedUsers = runner.exec(updateTo21stCentury.where("since,<",2000));
+			int numOfUpdatedUsers = runner.exec(updateTo21stCentury.where("since;<",2000));
 			assertEquals(1,numOfUpdatedUsers);
 
 			// Using a SelectQuery to count
 			// Note: t\This will do the appropriate select count... with the query info
-			long numOf21stCenturyUsers = runner.count(Query.select("user").where("since,>=",2000));
+			long numOf21stCenturyUsers = runner.count(Query.select("user").where("since;>=",2000));
 			assertEquals(2,numOf21stCenturyUsers);
 
+		}
+	}
+
+	@Test
+	public void fullTextSearchExample() {
+		// dataSource can be built via standard JDBC, or Pool like C3P0 or HikariCP for example
+		DB db = new DBBuilder().build(dataSource);
+
+		try (Runner runner = db.openRunner()) {
+			// insert a ticket
+			runner.execute("insert into ticket (id,subject) values (?,?)", 1L, "test_ticket first ticket for the manager");
+			runner.execute("insert into ticket (id,subject) values (?,?)", 2L, "test_ticket second ticket for a manager");
+			runner.execute("insert into ticket (id,subject) values (?,?)", 3L, "test_ticket third ticket for a staff");
+
+			// Build the tsv query
+			// NOTE 1: You can add third part (with the second ";") and in this case, it will be columnNameOrFunction;operator;valueFunction
+			// NOTE 2: The first "columnName" can be a function, and in this case, it won't be escaped;
+			// NOTE 3: the last ";to_tsquery(?)" allow to optionally add a function value to the query (which is what we need for tsv search).
+			SelectQuery<Ticket> tsvSelect = Query.select(Ticket.class).where("to_tsvector(ticket.subject);@@;to_tsquery(?)", "management");
+			System.out.println("sql: " + db.sql(tsvSelect));
+			// sql: select "ticket".* from "ticket" where to_tsvector(ticket.subject) @@ to_tsquery(?)
+
+			List<Ticket> tickets = runner.list(tsvSelect);
+			assertEquals(2, tickets.size());
 		}
 	}
 }

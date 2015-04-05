@@ -121,10 +121,10 @@ public class SelectQueryTest extends TestSupport {
 			// should have two tickets with projectId IS NULL
 			assertEquals(2, runner.list(Query.select(Ticket.class).where("projectId", null)).size());
 			// same as above, since no operator means null
-			assertEquals(2, runner.list(Query.select(Ticket.class).where("projectId,=", null)).size());
+			assertEquals(2, runner.list(Query.select(Ticket.class).where("projectId;=", null)).size());
 
 			// should have one ticket with not null
-			assertEquals(1,runner.list(Query.select(Ticket.class).where("projectId,!=",null)).size());
+			assertEquals(1,runner.list(Query.select(Ticket.class).where("projectId;!=",null)).size());
 
 		}
 	}
