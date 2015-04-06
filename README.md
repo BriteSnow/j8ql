@@ -136,7 +136,9 @@ assertEquals(projects[0][1],rec.get().get("projectName"));
 
 ```
 
-#### Column and Value Value (e.g. tsv search)
+#### Column and Value Function (e.g. tsv search)
+
+**Since 0.5.4-SNAPSHOT**
 
 The following Java Query building:
 ```java
