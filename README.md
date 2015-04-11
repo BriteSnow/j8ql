@@ -15,6 +15,7 @@ J8QL
 
 ### J8QL by example
 
+First, J8QL provide a simple and java friendly way to run raw sql statements with Java 8. You can list or stream the result, and get it as a generic set of Map (i.e. Record) or typed object. 
 
 ```java
 // ------ raw SQLs execute ------ //
@@ -45,8 +46,13 @@ try (Runner runner = db.openRunner()) {
   } // stream will be closed, which will close the enclosing PreparedStatement
 
 } // J8QL runner will be closed as well as the enclosing DB connection
-// ------ /raw SQLs execute ------ //
 
+// ------ /raw SQLs execute ------ //
+```
+
+Second, J8QL provide SQL Centric query building facilities that allow to build simple to complex SQL queries in a completely threadsafe and Java friendly pattern.
+
+```java
 // ------ Query Builder Examples ------ //
 DB db = new DBBuilder().build(dataSource);
 
@@ -90,7 +96,7 @@ try (Runner runner = db.openRunner()){
   }
 
   // Updating is as trivial, and can even return the whole Object
-  // Note: where clause name can have a convenient ",_OPERATOR_"
+  // Note: where clause name can have a convenient ";_OPERATOR_"
   UpdateQuery<Integer> updateTo21stCentury = Query.update(User.class).columns("since").values(2000);
   int numOfUpdatedUsers = runner.exec(updateTo21stCentury.where("since;<",2000));
   assertEquals(1,numOfUpdatedUsers);
@@ -103,19 +109,23 @@ try (Runner runner = db.openRunner()){
 }
 // ------ /Query Builder Examples------ //
 ```
+
 See full readme code at: [org.j8ql.test.ReadmeTest.java](https://github.com/BriteSnow/j8ql/blob/master/src/test/java/org/j8ql/test/ReadmeTest.java)
 
 ### Key Concepts
 
-- **SQL Centric:** Rather than trying to fully abstract (and obscure) relational model and SQL from Java, J8QL provides a modern, fluid, and schema aware Java 8 API for SQL. J8QL offers raw sql APIs that cut lot of boilerplate code from JDBC, as well as, a set of Query builder APIs that provide fluid, flexible, thread safe, and OO friendly scheme to build and execute SQL queries. This allows developers to take full advantage of their database SQL in a very Java and OO optimized way.
+- **SQL Centric:** Rather than trying to fully abstract (and obscure) relational model and SQL from Java, J8QL provides a modern, fluid, and schema aware Java 8 API for SQL. J8QL offers raw sql APIs that cut lot of boilerplate code from JDBC, as well as, a set of Query builder APIs that provide a fluid, thread safe, and Java friendly scheme to build and execute SQL queries. This allows developers to take full advantage of their database SQL in a very Java and OO optimized way.
 - **Schema Aware:** J8QL takes the angle to minimize redundancy between Database Schema and Java Class definition by scanning (and caching) the database schema. Why redefine the primary key as Java annotation when we have already have it in the database schema? This model allows to do run something like  ```Optional<User> = runner.first(Query.select(User.class).whereId(12L))``` with zero metadata on the Java side (composite keys also supported by just passing a Map or Pojo object with the appriate name/value properties)
 - **Java 8 Centric:** Java 8 offers a great opportunity to re-think Java libraries and J8QL is part of this re-thinking for ORM. J8QL is written in Java 8 for Java 8.
 - **Postgresql First:**  Depth before breath. Going deep in one database first allows J8QL to avoid lowest common denominator syndrome and expose the best functionality of one database before adding other ones. For example, J8QL offers seamless support for Postgresql awesome "no-sql/schema-less" capability (i.e. HSTORE datatype, see [postgesql as nosql](http://thebuild.com/presentations/pg-as-nosql-pgday-fosdem-2013.pdf)). 
 
-### Limitations & Roadmap
+### Roadmap
 
-1. One-One match between table/name and class/property name. @Table(tableName) and @Column(columnName) is coming soon.
-1. More advanced type coercion between type using Jomni mapper. Right now, we limit "advanced" type coercion to Enum and Object/Map to HSTORE, however, we should make it more generic. The question, is what is the cost of doing a ```preparedStatement.get...MetaData()``` if it just in memory lookup, then, we can do it for all query, if it has to go back, then, we need to think a little bit more. 
+1. subselect support.
+1. @Table(tableName) and @Column(columnName) is in the plan.
+1. Fully nested object support is in the plan. (Currently support one level java object de/serialization to hstore)
+1. Seamless support for JSONB.
+
 
 ### Other Examples
 
@@ -132,13 +142,63 @@ Optional<Record> rec = runner.first(selectBuilder);
 Record record = rec.get();
 // project name for ticket 0 is project 0.
 assertEquals(projects[0][1],rec.get().get("projectName"));
-
-
 ```
 
-#### Column and Value Function (e.g. tsv search)
+#### Column and Value Expression (since 0.5.4)
 
-**Since 0.5.4-SNAPSHOT**
+As well as being to specify custom operators in Query builders, you can also specify express in column and value
+```java
+Query.select(Ticket.class).where("lower(subject);=;lower(?)", "UPPER TICKET");
+```
+
+Will generate
+```sql
+select "ticket".* from "ticket" where lower(subject) = lower(?)
+```
+
+Full example:
+
+```java
+// dataSource can be built via standard JDBC, or Pool like C3P0 or HikariCP for example
+DB db = new DBBuilder().build(dataSource);
+
+try (Runner runner = db.openRunner()) {
+  // insert a tickets (just using raw SQL)
+  runner.execute("insert into ticket (id,subject) values (?,?)", 1L, "UPPER ticket");
+  runner.execute("insert into ticket (id,subject) values (?,?)", 2L, "lower ticket");
+
+  SelectQuery<Ticket> selectQuery;
+
+  // without the column expression (count of this select should be 0)
+  selectQuery = Query.select(Ticket.class).where("subject", "upper ticket");
+  System.out.println(db.sql(selectQuery)); // select "ticket".* from "ticket" where "subject" = ?
+  assertEquals(0, runner.count(selectQuery));
+
+
+  // With a custom operator (here ilike for case insensitive)
+  selectQuery = Query.select(Ticket.class).where("subject;ilike", "upper ticket");
+  // select "ticket".* from "ticket" where "subject" ilike ?
+  assertEquals(1, runner.count(selectQuery));
+
+  // With a column expression
+  selectQuery = Query.select(Ticket.class).where("lower(subject)", "upper ticket");
+  // select "ticket".* from "ticket" where lower(subject) = ?
+  assertEquals(1, runner.count(selectQuery));
+
+
+  // Not that when no operator "=" is used, so the above Query is similar than:
+  selectQuery = Query.select(Ticket.class).where("lower(subject);=", "upper ticket");
+  // select "ticket".* from "ticket" where lower(subject) = ?
+  assertEquals(1, runner.count(selectQuery));
+
+  // With a column expression and value expression
+  selectQuery = Query.select(Ticket.class).where("lower(subject);=;lower(?)", "UPPER TICKET");
+  // select "ticket".* from "ticket" where lower(subject) = lower(?)
+  assertEquals(1, runner.count(selectQuery));
+}
+```
+
+#### TSV example with Column and Value Expression (since 0.5.4)
 
 The following Java Query building:
 ```java

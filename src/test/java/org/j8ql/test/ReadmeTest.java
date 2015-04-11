@@ -20,6 +20,8 @@ import static java.util.stream.Collectors.toList;
 import static org.jomni.util.Maps.mapOf;
 import static org.junit.Assert.assertEquals;
 
+
+
 public class ReadmeTest extends TestSupport {
 
 	@Test
@@ -117,12 +119,59 @@ public class ReadmeTest extends TestSupport {
 	}
 
 	@Test
+	public void columnAndValueExpression(){
+		// dataSource can be built via standard JDBC, or Pool like C3P0 or HikariCP for example
+		DB db = new DBBuilder().build(dataSource);
+
+		try (Runner runner = db.openRunner()) {
+			// insert a tickets (just using raw SQL)
+			runner.execute("insert into ticket (id,subject) values (?,?)", 1L, "UPPER ticket");
+			runner.execute("insert into ticket (id,subject) values (?,?)", 2L, "lower ticket");
+
+			SelectQuery<Ticket> selectQuery;
+
+			// without the column expression (count of this select should be 0)
+			selectQuery = Query.select(Ticket.class).where("subject", "upper ticket");
+			// System.out.println(db.sql(selectQuery));
+			// select "ticket".* from "ticket" where "subject" = ?
+			assertEquals(0, runner.count(selectQuery));
+
+
+			// With a custom operator (here ilike for case insensitive)
+			selectQuery = Query.select(Ticket.class).where("subject;ilike", "upper ticket");
+			// System.out.println(db.sql(selectQuery));
+			// select "ticket".* from "ticket" where "subject" ilike ?
+			assertEquals(1, runner.count(selectQuery));
+
+			// With a column expression
+			selectQuery = Query.select(Ticket.class).where("lower(subject)", "upper ticket");
+			// System.out.println(db.sql(selectQuery));
+			// select "ticket".* from "ticket" where lower(subject) = ?
+			assertEquals(1, runner.count(selectQuery));
+
+
+			// Not that when no operator "=" is used, so the above Query is similar than:
+			selectQuery = Query.select(Ticket.class).where("lower(subject);=", "upper ticket");
+			// System.out.println(db.sql(selectQuery));
+			// select "ticket".* from "ticket" where lower(subject) = ?
+			assertEquals(1, runner.count(selectQuery));
+
+			// With a column expression and value expression
+			selectQuery = Query.select(Ticket.class).where("lower(subject);=;lower(?)", "UPPER TICKET");
+			// System.out.println(db.sql(selectQuery));
+			// select "ticket".* from "ticket" where lower(subject) = lower(?)
+			assertEquals(1, runner.count(selectQuery));
+		}
+	}
+
+
+	@Test
 	public void fullTextSearchExample() {
 		// dataSource can be built via standard JDBC, or Pool like C3P0 or HikariCP for example
 		DB db = new DBBuilder().build(dataSource);
 
 		try (Runner runner = db.openRunner()) {
-			// insert a ticket
+			// insert the data
 			runner.execute("insert into ticket (id,subject) values (?,?)", 1L, "test_ticket first ticket for the manager");
 			runner.execute("insert into ticket (id,subject) values (?,?)", 2L, "test_ticket second ticket for a manager");
 			runner.execute("insert into ticket (id,subject) values (?,?)", 3L, "test_ticket third ticket for a staff");
