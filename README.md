@@ -7,7 +7,7 @@ J8QL
 - **Java 8 Centric:** Written in Java 8 for Java 8.
 - **Postgresql First:**  Depth before breath. Going deep on PostgreSQL first.
 
-**Current version:** 0.5-SNAPSHOT *(Under development, relatively robust, for postgres 9.3 only, API might change)* 
+**Current version:** 0.5.4 *(Under development, relatively robust, for postgres 9.3 only, API might change)* 
 
 **License:** Apache v2
 
@@ -258,7 +258,7 @@ Just add the following dependency in your pom.xml (J8QL is on maven central)
     <dependency>
       <groupId>org.j8ql</groupId>
       <artifactId>j8ql</artifactId>
-      <version>0.5.3</version>
+      <version>0.5.4</version>
     </dependency>   
 ```
 
