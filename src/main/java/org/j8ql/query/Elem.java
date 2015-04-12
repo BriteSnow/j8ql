@@ -5,6 +5,8 @@
 
 package org.j8ql.query;
 
+import org.j8ql.DB;
+
 import java.util.List;
 
 /**
@@ -17,9 +19,9 @@ public interface Elem {
 	 * @param sb
 	 * @return Must return the same StringBuilder sb for chainability.
 	 */
-	public StringBuilder buildSql(StringBuilder sb);
+	public StringBuilder buildSql(DB db, StringBuilder sb);
 
-	public List buildValues(List values);
+	public List buildValues(DB db, List values);
 
 	public List<Elem> getElems();
 }

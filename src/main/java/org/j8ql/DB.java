@@ -363,7 +363,7 @@ public class DB {
  	 */
 	public List<Record> buildResults(ResultSet rs) {
 		Stream<Record> resultSetStream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(new ResultSetIterator(rs, this), 0), false);
-		try(Stream<Record> autoCloseableResultSetStream = new CloseableStream<>(resultSetStream,rs::close)){
+		try(Stream<Record> autoCloseableResultSetStream = new CloseableStream<Record>(resultSetStream,rs::close)){
 			return autoCloseableResultSetStream.collect(toList());
 		}
 	}

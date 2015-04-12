@@ -57,7 +57,7 @@ public class Generator {
 			}
 		}
 		if (where != null) {
-			return Arrays.asList(where.toValues());
+			return Arrays.asList(where.toValues(db));
 		}else{
 			return null;
 		}

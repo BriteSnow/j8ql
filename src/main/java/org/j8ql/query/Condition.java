@@ -5,6 +5,7 @@
 
 package org.j8ql.query;
 
+import org.j8ql.DB;
 import org.j8ql.util.Immutables;
 
 import java.util.ArrayList;
@@ -56,24 +57,24 @@ public class Condition implements Elem{
 		return new Condition(Type.AND, current, next);
 	}
 
-	public String toSql(){
-		return buildSql(new StringBuilder()).toString();
+	public String toSql(DB db){
+		return buildSql(db, new StringBuilder()).toString();
 	}
 
-	public Object[] toValues() {
-		return buildValues(new ArrayList<>()).toArray();
+	public Object[] toValues(DB db) {
+		return buildValues(db, new ArrayList<>()).toArray();
 	}
 
 	// --------- Elem Implementation --------- //
-	public List buildValues(List values){
+	public List buildValues(DB db, List values){
 		for (Elem elem : elems){
-			elem.buildValues(values);
+			elem.buildValues(db, values);
 		}
 		return values;
 	}
 
 	@Override
-	public StringBuilder buildSql(StringBuilder sb) {
+	public StringBuilder buildSql(DB db, StringBuilder sb) {
 		boolean first = true;
 		for (Elem elem : elems){
 			if (!first){
@@ -86,7 +87,7 @@ public class Condition implements Elem{
 				bracket = elem.getElems().size() > 1 && type != ((Condition)elem).type;
 			}
 			if (bracket) sb.append('(');
-			elem.buildSql(sb);
+			elem.buildSql(db, sb);
 			if (bracket) sb.append(')');
 		}
 		return sb;

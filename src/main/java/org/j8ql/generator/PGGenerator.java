@@ -33,7 +33,7 @@ public class PGGenerator extends Generator {
 		}
 		if (where != null){
 			sql.append(" where ");
-			sql.append(where.toSql());
+			sql.append(where.toSql(db));
 		}
 	}
 

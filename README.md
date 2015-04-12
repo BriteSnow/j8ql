@@ -198,6 +198,54 @@ try (Runner runner = db.openRunner()) {
 }
 ```
 
+#### SubSelect (since 0.5.5)
+
+
+```java
+private Object[][] data = new Object[][]{{1,40, "Medium low ticket 1"},
+    {2,40, "Medium low ticket 2"},
+    {3,49, "Medium ticket 3"},
+    {4,51, "Medium ticket 4"},
+    {5,60, "Medium high ticket 5"}};
+
+// dataSource can be built via standard JDBC, or Pool like C3P0 or HikariCP for example
+DB db = new DBBuilder().build(dataSource);
+
+try (Runner runner = db.openRunner()) {
+
+  // insert the data
+  for (Object[] vals : data) {
+    runner.execute("insert into ticket (id,priority,subject) values (?,?,?)", vals);
+  }
+
+  SelectQuery<Record> subSelect, fullSelect;
+
+  // --------- SubSelect --------- //
+  // select avg(priority) from "ticket"
+  subSelect = Query.select("ticket").columns("avg(priority)");
+
+  // select "ticket".* from "ticket" where "priority" > (select avg(priority) from "ticket")
+  fullSelect = Query.select("ticket").where("priority;>", subSelect);
+
+  // Should match three rows (because avg is 48)
+  assertEquals(3, runner.count(fullSelect));
+  // --------- /SubSelect --------- //
+
+  // --------- SubSelect with parameters --------- //
+  // select "id" from "ticket" where "priority" >= ?
+  subSelect = Query.select("ticket").columns("id").where("priority;>=", 50);
+
+  // select "ticket".* from "ticket" where "id" in (select "id" from "ticket" where "priority" >= ?)
+  fullSelect = Query.select("ticket").where("id;in", subSelect);
+
+  // Should match two rows
+  assertEquals(2, runner.count(fullSelect));
+  // --------- /SubSelect with parameters --------- //
+}    
+```
+
+
+
 #### TSV example with Column and Value Expression (since 0.5.4)
 
 The following Java Query building:

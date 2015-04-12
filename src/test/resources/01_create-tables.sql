@@ -46,6 +46,7 @@ CREATE TABLE ticket
 	subject character varying(255),
 	environment character varying(512),
 	description text,
+	priority int,
 	"dueDate" date,
 
 	-- Timestamp data
