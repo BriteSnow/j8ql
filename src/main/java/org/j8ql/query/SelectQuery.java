@@ -19,7 +19,7 @@ import static org.j8ql.query.Query.and;
  */
 public class SelectQuery<T> extends BaseQuery<T> implements Where<SelectQuery<T>> {
 
-	private List<String> columns;
+	private List<Object> columns;
 
 	private Condition where = null;
 	private Object whereId = null;
@@ -84,7 +84,7 @@ public class SelectQuery<T> extends BaseQuery<T> implements Where<SelectQuery<T>
 	// --------- /From --------- //
 
 	// --------- Columns --------- //
-	public SelectQuery<T> columns(String... columnNames){
+	public SelectQuery<T> columns(Object... columnNames){
 		if (columnNames == null){
 			this.columns = null;
 		}else{
@@ -188,7 +188,7 @@ public class SelectQuery<T> extends BaseQuery<T> implements Where<SelectQuery<T>
 	// --------- /Join --------- //
 
 	// --------- Accessors --------- //
-	public List<String> getColumns() {
+	public List<Object> getColumns() {
 		return columns;
 	}
 

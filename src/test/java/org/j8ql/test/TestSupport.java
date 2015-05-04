@@ -51,7 +51,8 @@ public class TestSupport {
 	static public void afterClass(){
 		((HikariDataSource)dataSource).close();
 	}
-    @Before
+
+	@Before
     public void before(){
         cleanTables();
     }

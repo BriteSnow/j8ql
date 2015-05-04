@@ -7,11 +7,16 @@ package org.j8ql.generator;
 
 import org.j8ql.DB;
 import org.j8ql.def.TableDef;
+import org.j8ql.query.Case;
 import org.j8ql.query.Join;
 import org.j8ql.query.SelectQuery;
 import org.j8ql.util.SqlUtils;
+import org.jomni.util.Pair;
 
 import java.util.List;
+
+import static org.j8ql.util.SqlUtils.escapeColumnName;
+import static org.j8ql.util.SqlUtils.inlineValue;
 
 /**
  * <p></p>
@@ -32,7 +37,7 @@ public class PGSelectGenerator extends PGGenerator {
 		if (countColumn != null){
 			sql.append(" count(").append(countColumn).append(')');
 		}else {
-			List<String> columnNames = selectBuilder.getColumns();
+			List<Object> columnNames = selectBuilder.getColumns();
 			// if we have some columns specified, then, take those ones.
 			if (columnNames != null) {
 
@@ -43,7 +48,12 @@ public class PGSelectGenerator extends PGGenerator {
 							}else{
 								sb1.append(" ");
 							}
-							sb1.append(SqlUtils.escapeColumnName(name));
+							if (name instanceof Case) {
+								sb1.append(buildCase((Case) name));
+							}else {
+								sb1.append(escapeColumnName(name.toString()));
+							}
+
 						},
 						StringBuilder::append
 				);
@@ -99,6 +109,35 @@ public class PGSelectGenerator extends PGGenerator {
 
 
 	// --------- Private Helpers --------- //
+	private String buildCase(Case c) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("CASE");
+
+		String on = c.getOn();
+		if (on != null) {
+			sb.append(" ").append(escapeColumnName(on));
+		}
+
+		for (Pair<Object,Object> whenThen : c.getWhenThenList()){
+			// append the when expression
+			sb.append(" WHEN ").append(whenThen.getA());
+			// append the value (for now, those will be inline, not parametrize)
+			sb.append(" THEN ").append(inlineValue(whenThen.getB()));
+		}
+
+		Object orElse = c.getOrElse();
+		if (orElse != null) {
+			sb.append(" ELSE ").append(inlineValue(orElse));
+		}
+		sb.append(" END");
+
+		String alias = c.getAlias();
+		if (alias != null) {
+			sb.append(' ').append(escapeColumnName(alias));
+		}
+		return sb.toString();
+	}
+
 	private String buildOrderBy(String[] orderBys){
 		if (orderBys != null && orderBys.length > 0) {
 			StringBuilder sb = new StringBuilder();

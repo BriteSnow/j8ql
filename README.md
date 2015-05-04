@@ -200,7 +200,6 @@ try (Runner runner = db.openRunner()) {
 
 #### SubSelect (since 0.5.5)
 
-
 ```java
 private Object[][] data = new Object[][]{{1,40, "Medium low ticket 1"},
     {2,40, "Medium low ticket 2"},
@@ -242,6 +241,50 @@ try (Runner runner = db.openRunner()) {
   assertEquals(2, runner.count(fullSelect));
   // --------- /SubSelect with parameters --------- //
 }    
+```
+
+### Case 
+__(since 0.5.5)__
+
+J8QL support Case conditional expression in a SelectQuery statement using the CaseBuilder pattern. 
+
+```java
+Case pcase = new Case.CaseBuilder().on("priority").whenThen(0, "blocker").whenThen(1, "important").whenThen(2, "shouldfix").orElse("other").alias("p").build();
+SelectQuery<Record> select = Query.select("ticket").columns("id", "subject", pcase).orderBy("priority");
+System.out.println(db.sql(select));
+```
+
+will generate
+
+```sql
+select "id", "subject", CASE "priority" WHEN 0 THEN 'blocker' WHEN 1 THEN 'important' WHEN 2 THEN 'shouldfix' ELSE 'other' END "p" from "ticket" order by "priority" asc
+```
+
+```java
+// dataSource can be built via standard JDBC, or Pool like C3P0 or HikariCP for example
+DB db = new DBBuilder().build(dataSource);
+try (Runner runner = db.openRunner()) {
+  // insert the data
+  runner.execute("insert into ticket (id,subject,priority) values (?,?,?)", 0L, "test_ticket blocker issue", 0);
+  runner.execute("insert into ticket (id,subject,priority) values (?,?,?)", 1L, "test_ticket important issue", 1);
+  runner.execute("insert into ticket (id,subject,priority) values (?,?,?)", 2L, "test_ticket should fix issue", 2);
+  runner.execute("insert into ticket (id,subject,priority) values (?,?,?)", 3L, "test_ticket minor issue", 3);
+  runner.execute("insert into ticket (id,subject,priority) values (?,?,?)", 4L, "test_ticket other minor issue", null);
+
+  // build the Case expression (via Builder pattern)
+  Case pcase = new Case.CaseBuilder().on("priority").whenThen(0, "blocker").whenThen(1, "important").whenThen(2, "shouldfix").orElse("other").alias("p").build();
+  // use the case expression object as a column
+  SelectQuery<Record> select = Query.select("ticket").columns("id", "subject", pcase).orderBy("priority");
+
+  List<Record> list = runner.list(select);
+
+  list.stream().forEach(System.out::println);
+  // {p=blocker, subject=test_ticket blocker issue, id=0}
+  // {p=important, subject=test_ticket important issue, id=1}
+  // {p=shouldfix, subject=test_ticket should fix issue, id=2}
+  // {p=other, subject=test_ticket minor issue, id=3}
+  // {p=other, subject=test_ticket other minor issue, id=4}  
+}
 ```
 
 

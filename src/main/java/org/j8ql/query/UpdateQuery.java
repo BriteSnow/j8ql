@@ -88,7 +88,7 @@ public class UpdateQuery<T> extends IUQuery<T> implements Where<UpdateQuery<T>>,
 
 	// --------- Columns --------- //
 	@Override
-	public UpdateQuery<T> columns(String... columnNames){
+	public UpdateQuery<T> columns(Object... columnNames){
 		return columns(new UpdateQuery<T>(this), columnNames);
 	}
 	// --------- /Columns --------- //

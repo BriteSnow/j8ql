@@ -17,7 +17,7 @@ import static java.util.stream.Collectors.toList;
  */
 public class IUQuery<T> extends IUDQuery<T> {
 
-	private List<String> columns;
+	private List<Object> columns;
 
 	private List<Object> values;
 	private ValueObject valueObject;
@@ -41,7 +41,7 @@ public class IUQuery<T> extends IUDQuery<T> {
 	// --------- /Clone Constructors --------- //
 
 	// --------- Columns --------- //
-	protected <K extends IUQuery> K columns(K newBuilder, String... columnNames){
+	protected <K extends IUQuery> K columns(K newBuilder, Object... columnNames){
 		if (columnNames == null){
 			((IUQuery)newBuilder).columns = null;
 		}else{
@@ -82,7 +82,7 @@ public class IUQuery<T> extends IUDQuery<T> {
 	// --------- /batch values --------- //
 
 	// --------- Getters --------- //
-	public List<String> getColumns() {
+	public List<Object> getColumns() {
 		return columns;
 	}
 

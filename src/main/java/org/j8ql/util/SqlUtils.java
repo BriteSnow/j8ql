@@ -63,4 +63,29 @@ public class SqlUtils {
 
 		return sb.toString();
 	}
+
+	/**
+	 * <p>Return the inlineValue of an object val that can be added to a sql string.</p>
+	 * <p>For now, if it is a number, then, just return the string as is, otherwise, single quote the string result.</p>
+	 * <p>For Example:</p>
+	 * <ul>
+	 *     <li>val: 123 would return "123"</li>
+	 *     <li>val: "somestring" would return "'somestring'"</li>
+	 * </ul>
+	 * @param val
+	 * @return
+	 */
+	static public String inlineValue(Object val) {
+		if (val == null) {
+			return "NULL";
+		}
+		StringBuilder sb = new StringBuilder();
+		if (val instanceof Number) {
+			sb.append(val);
+		} else {
+			sb.append('\'').append(val).append('\'');
+		}
+
+		return sb.toString();
+	}
 }

@@ -4,10 +4,7 @@ import org.j8ql.DB;
 import org.j8ql.DBBuilder;
 import org.j8ql.Record;
 import org.j8ql.Runner;
-import org.j8ql.query.InsertQuery;
-import org.j8ql.query.Query;
-import org.j8ql.query.SelectQuery;
-import org.j8ql.query.UpdateQuery;
+import org.j8ql.query.*;
 import org.j8ql.test.app.Ticket;
 import org.j8ql.test.app.User;
 import org.junit.Test;
@@ -186,6 +183,37 @@ public class ReadmeTest extends TestSupport {
 
 			List<Ticket> tickets = runner.list(tsvSelect);
 			assertEquals(2, tickets.size());
+		}
+	}
+
+	@Test
+	public void caseExample(){
+		// dataSource can be built via standard JDBC, or Pool like C3P0 or HikariCP for example
+		DB db = new DBBuilder().build(dataSource);
+		try (Runner runner = db.openRunner()) {
+			// insert the data
+			runner.execute("insert into ticket (id,subject,priority) values (?,?,?)", 0L, "test_ticket blocker issue", 0);
+			runner.execute("insert into ticket (id,subject,priority) values (?,?,?)", 1L, "test_ticket important issue", 1);
+			runner.execute("insert into ticket (id,subject,priority) values (?,?,?)", 2L, "test_ticket should fix issue", 2);
+			runner.execute("insert into ticket (id,subject,priority) values (?,?,?)", 3L, "test_ticket minor issue", 3);
+			runner.execute("insert into ticket (id,subject,priority) values (?,?,?)", 4L, "test_ticket other minor issue", null);
+
+			// build the Case expression (via Builder pattern)
+			Case pcase = new Case.CaseBuilder().on("priority").whenThen(0, "blocker").whenThen(1, "important").whenThen(2, "shouldfix").orElse("other").alias("p").build();
+			// use the case expression object as a column
+			SelectQuery<Record> select = Query.select("ticket").columns("id", "subject", pcase).orderBy("priority");
+
+			//System.out.println(db.sql(select));
+
+			List<Record> list = runner.list(select);
+			assertEquals("test_ticket blocker issue", list.get(0).get("subject"));
+			assertEquals("blocker", list.get(0).get("p"));
+			assertEquals("shouldfix", list.get(2).get("p"));
+			assertEquals("other", list.get(3).get("p"));
+			assertEquals("other", list.get(4).get("p"));
+
+			//list.stream().forEach(System.out::println);
+
 		}
 	}
 }
