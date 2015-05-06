@@ -84,14 +84,15 @@ public class SelectQuery<T> extends BaseQuery<T> implements Where<SelectQuery<T>
 	// --------- /From --------- //
 
 	// --------- Columns --------- //
-	public SelectQuery<T> columns(Object... columnNames){
-		if (columnNames == null){
-			this.columns = null;
-		}else{
+	public SelectQuery<T> columns(Object... columnNames) {
+		SelectQuery<T> newBuilder = new SelectQuery<T>(this);
+		if (columnNames == null) {
+			newBuilder.columns = null;
+		} else {
 			// TODO: probably can use the Guava Immutables as we should not have null in this list.
-			this.columns = Immutables.of(columnNames);
+			newBuilder.columns = Immutables.of(columnNames);
 		}
-		return this;
+		return newBuilder;
 	}
 	// --------- /Columns --------- //
 
