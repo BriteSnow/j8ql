@@ -17,7 +17,7 @@ import static org.j8ql.query.Query.and;
 /**
  * A Query to build select queries. Can be used for runner.count(selectBuilder) as well.
  */
-public class SelectQuery<T> extends BaseQuery<T> implements Where<SelectQuery<T>> {
+public class SelectQuery<T> extends BaseQuery<T> implements Where<SelectQuery<T>>, Columns<SelectQuery<T>> {
 
 	private List<Object> columns;
 

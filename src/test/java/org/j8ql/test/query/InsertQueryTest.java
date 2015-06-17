@@ -5,12 +5,14 @@
 
 package org.j8ql.test.query;
 
+import com.google.common.collect.Sets;
 import org.j8ql.*;
 import org.j8ql.query.InsertQuery;
 import org.j8ql.test.TestSupport;
 import static org.j8ql.query.Query.*;
 import static org.jomni.util.Maps.mapOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.j8ql.test.app.Label;
@@ -19,6 +21,7 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -73,6 +76,36 @@ public class InsertQueryTest extends TestSupport {
 			List<User> users = runner.list(User.class, "select * from \"user\"");
 			assertEquals(3,users.size());
 			assertEquals("mikeIBT", users.get(0).getUsername());
+		}
+	}
+
+	@Test
+	public void simpleInsertColumns() {
+		DB db = new DBBuilder().build(dataSource);
+		try (Runner runner = db.openRunner()){
+			// here we not not include title
+			InsertQuery<Integer> ib = insert().columns("id","username").into("user");
+
+			// the userMap value will have the title
+			Map userMap = mapOf("id",123L,"username","test_simpleInsertColumns-user-1","title","test_title");
+
+			// we run the insertQuery
+			runner.exec(ib.value(userMap));
+
+			// get it back from the db
+			Map userMapFromDb = runner.first(select("user").whereId(123L)).get();
+			// check that the username match
+			assertEquals("test_simpleInsertColumns-user-1", userMapFromDb.get("username"));
+			// and check title is null
+			assertNull(userMapFromDb.get("title"));
+
+			// try it with a Set for columns
+			ib = insert("user").columns(Sets.newHashSet("id", "username"));
+			userMap = mapOf("id",124L,"username","test_simpleInsertColumns-user-2","title","test_title");
+			runner.exec(ib.value(userMap));
+			userMapFromDb = runner.first(select("user").whereId(124L)).get();
+			assertEquals("test_simpleInsertColumns-user-2", userMapFromDb.get("username"));
+			assertNull(userMapFromDb.get("title"));
 		}
 	}
 

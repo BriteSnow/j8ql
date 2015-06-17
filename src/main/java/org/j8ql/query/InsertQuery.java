@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * <p></p>
  */
-public class InsertQuery<T> extends IUQuery<T> {
+public class InsertQuery<T> extends IUQuery<T> implements Columns<InsertQuery<T>>      {
 
 	// ---------Base Constructors --------- //
 	private InsertQuery(Class<T> asClass){
@@ -48,7 +48,8 @@ public class InsertQuery<T> extends IUQuery<T> {
 	// --------- /Into --------- //
 
 	// --------- Columns --------- //
-	public InsertQuery<T> columns(String... columnNames){
+	@Override
+	public InsertQuery<T> columns(Object... columnNames){
 		return columns(new InsertQuery<T>(this), columnNames);
 	}
 	// --------- /Columns --------- //
