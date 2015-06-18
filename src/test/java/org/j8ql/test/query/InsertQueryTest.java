@@ -19,9 +19,7 @@ import org.j8ql.test.app.Label;
 import org.j8ql.test.app.User;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -248,5 +246,19 @@ public class InsertQueryTest extends TestSupport {
 		}
 	}
 
+	// just to test compilation issue.
+	public int compilationWithColumnsSets(){
+		DB db = new DBBuilder().build(dataSource);
 
+		Set<String> eCols = new HashSet<>();
+		eCols.add("pwd");
+
+		Map map = new HashMap();
+
+		try (Runner runner = db.openRunner()) {
+			// Note: needs to have the (Set<String>) cast to return the appropriate type.
+			return runner.exec(update("user").columns((Set<String>)map.keySet()));
+		}
+
+	}
 }
