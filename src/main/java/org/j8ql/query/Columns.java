@@ -18,4 +18,12 @@ public interface Columns<T> {
 		}
 	}
 
+	public default T excludeColumns(Set<String> columnsExcludeSet){
+		if (columnsExcludeSet != null){
+			return excludeColumns(columnsExcludeSet.toArray(new String[columnsExcludeSet.size()]));
+		}else {
+			return excludeColumns((String[]) null);
+		}
+	}
+
 }
