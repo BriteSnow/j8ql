@@ -91,6 +91,11 @@ public class UpdateQuery<T> extends IUQuery<T> implements Where<UpdateQuery<T>>,
 	public UpdateQuery<T> columns(Object... columnNames){
 		return columns(new UpdateQuery<T>(this), columnNames);
 	}
+
+	@Override
+	public UpdateQuery<T> excludeColumns(String... columnNames) {
+		return excludeColumns(new UpdateQuery<T>(this), columnNames);
+	}
 	// --------- /Columns --------- //
 
 	// --------- values --------- //

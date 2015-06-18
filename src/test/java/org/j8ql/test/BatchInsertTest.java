@@ -66,7 +66,6 @@ public class BatchInsertTest extends TestSupport {
 			// check
 			assertEquals(2, runner.count(select("ticket")));
 			assertEquals(data[0].get("subject"),runner.first(select("ticket").whereId(1)).get().get("subject"));
-
 		}
 	}
 

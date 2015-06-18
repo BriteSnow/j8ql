@@ -14,6 +14,8 @@ import org.jomni.JomniMapper;
 import org.jomni.Omni;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.j8ql.def.ColumnDef.Meta.hasDefault;
 import static org.j8ql.def.ColumnDef.Meta.notNullable;
@@ -50,9 +52,17 @@ public class ValueObject {
 	 * @param explicitColumns
 	 * @return
 	 */
-	public List<String> getColumns(JomniMapper mapper, TableDef tableDef, List<String> explicitColumns) {
+	public List<String> getColumns(JomniMapper mapper, TableDef tableDef, List<String> explicitColumns, Set<String> excludeColumns) {
 		if (explicitColumns != null) {
-			return explicitColumns;
+			// if we do not have an exclude column, we can return as is.
+			if (excludeColumns == null){
+				return explicitColumns;
+			}
+			// if we have an excludeColumns then, we need to filter them out.
+			else{
+				return  explicitColumns.stream().filter(n -> !excludeColumns.contains(n)).collect(Collectors.toList());
+			}
+
 		}
 
 		List<String> columns = new ArrayList<>();
@@ -63,13 +73,15 @@ public class ValueObject {
 			// if the column is in the objectProperty and if onlyColumnSet not null check it is there too
 			if (omni.containsKey(columnDef.name)) {
 				// We ignore null values for notNullable primaryKey columns that have a default.
-				// TODO: probably needs to
 				if (columnDef.hasMeta(notNullable,hasDefault, primaryKey) && omni.get(columnDef.name) == null){
 					// Ignore null values when the column is not nullable and has a default.
 				}else{
-					columns.add(columnDef.name);
-					// (wrote this if/else this way for readability)
-				}
+					// If no excludeColumns or if it is not contained in it, then, add this as a column name
+					if (excludeColumns == null || !excludeColumns.contains(columnDef.name)){
+						columns.add(columnDef.name);
+					}
+				} // (wrote this if/else this way for readability)
+
 				// Note that this still voluntarily fail if it is not nullable and has no default as this is out of the scope
 				// of this behavior.
 			}
@@ -86,9 +98,9 @@ public class ValueObject {
 	 * @param explicitColumns explicit list of columns to get the values from
 	 * @return
 	 */
-	public List getValues(JomniMapper mapper, TableDef tableDef, List<String> explicitColumns){
+	public List getValues(JomniMapper mapper, TableDef tableDef, List<String> explicitColumns, Set<String> excludeColumns){
 		// get the onlyColumns or the onlyColumns
-		List<String> columns = getColumns(mapper, tableDef,explicitColumns);
+		List<String> columns = getColumns(mapper, tableDef,explicitColumns, excludeColumns);
 
 		List values = new ArrayList<>();
 

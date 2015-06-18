@@ -52,6 +52,11 @@ public class InsertQuery<T> extends IUQuery<T> implements Columns<InsertQuery<T>
 	public InsertQuery<T> columns(Object... columnNames){
 		return columns(new InsertQuery<T>(this), columnNames);
 	}
+
+	@Override
+	public InsertQuery<T> excludeColumns(String... columnNames) {
+		return excludeColumns(new InsertQuery<T>(this), columnNames);
+	}
 	// --------- /Columns --------- //
 
 	// --------- values --------- //

@@ -14,6 +14,7 @@ import org.j8ql.util.SqlUtils;
 import org.jomni.util.Pair;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.j8ql.util.SqlUtils.escapeColumnName;
 import static org.j8ql.util.SqlUtils.inlineValue;
@@ -38,28 +39,34 @@ public class PGSelectGenerator extends PGGenerator {
 			sql.append(" count(").append(countColumn).append(')');
 		}else {
 			List<Object> columnNames = selectBuilder.getColumns();
+			Set<String> excludeColumnNames = selectBuilder.getExcludedColumns();
+
 			// if we have some columns specified, then, take those ones.
 			if (columnNames != null) {
 
 				StringBuilder sb = columnNames.stream().collect(StringBuilder::new,
 						(sb1, name) -> {
-							if (sb1.length() > 0){
-								sb1.append(", ");
-							}else{
-								sb1.append(" ");
-							}
-							if (name instanceof Case) {
-								sb1.append(buildCase((Case) name));
-							}else {
-								sb1.append(escapeColumnName(name.toString()));
-							}
+							// if we have some excludeColumnnames, we need to make sure this name is not one of them
+							// NOTE: in the select case, in the column we might have some item of type Case
+							//       but the excludeColumanName.contains will still work (just return false)
+							if (excludeColumnNames == null || !excludeColumnNames.contains(name)){
+								sb1 = (sb1.length() > 0) ? sb1.append(", ") : sb1.append(" ");
 
+								if (name instanceof Case) {
+									sb1.append(buildCase((Case) name));
+								}else {
+									sb1.append(escapeColumnName(name.toString()));
+								}
+							}
 						},
 						StringBuilder::append
 				);
 				sql.append(sb.toString());
 				
 			}else{
+				// FIXME: We need to add support for excludeColumnNames here.
+				//        Probably need to take all of the columns of this table, or the subset of the targetClass, and exclude the excludeColumnNames
+
 				// when no columns, default to tableName.*
 				sql.append(" \"").append(tableDef.getName()).append('"').append(".*");
 			}

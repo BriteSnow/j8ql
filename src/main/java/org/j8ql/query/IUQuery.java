@@ -5,9 +5,13 @@
 
 package org.j8ql.query;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.j8ql.util.Immutables;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 
@@ -18,6 +22,7 @@ import static java.util.stream.Collectors.toList;
 public class IUQuery<T> extends IUDQuery<T> {
 
 	private List<Object> columns;
+	private Set<String>  excludedColumns;
 
 	private List<Object> values;
 	private ValueObject valueObject;
@@ -46,6 +51,15 @@ public class IUQuery<T> extends IUDQuery<T> {
 			((IUQuery)newBuilder).columns = null;
 		}else{
 			((IUQuery)newBuilder).columns = Immutables.of(columnNames);
+		}
+		return newBuilder;
+	}
+
+	protected <K extends IUQuery> K excludeColumns(K newBuilder, String... columnNames){
+		if (columnNames == null){
+			((IUQuery)newBuilder).excludedColumns = null;
+		}else {
+			((IUQuery) newBuilder).excludedColumns = ImmutableSet.copyOf(columnNames);
 		}
 		return newBuilder;
 	}
@@ -84,6 +98,10 @@ public class IUQuery<T> extends IUDQuery<T> {
 	// --------- Getters --------- //
 	public List<Object> getColumns() {
 		return columns;
+	}
+
+	public Set<String> getExcludedColumns() {
+		return excludedColumns;
 	}
 
 	public List<Object> getValues() {

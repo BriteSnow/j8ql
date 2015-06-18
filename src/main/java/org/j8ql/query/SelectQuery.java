@@ -5,12 +5,14 @@
 
 package org.j8ql.query;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
 import org.j8ql.Record;
 import org.j8ql.util.Immutables;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static org.j8ql.query.Query.and;
 
@@ -20,6 +22,7 @@ import static org.j8ql.query.Query.and;
 public class SelectQuery<T> extends BaseQuery<T> implements Where<SelectQuery<T>>, Columns<SelectQuery<T>> {
 
 	private List<Object> columns;
+	private Set<String> excludedColumns;
 
 	private Condition where = null;
 	private Object whereId = null;
@@ -84,6 +87,7 @@ public class SelectQuery<T> extends BaseQuery<T> implements Where<SelectQuery<T>
 	// --------- /From --------- //
 
 	// --------- Columns --------- //
+	@Override
 	public SelectQuery<T> columns(Object... columnNames) {
 		SelectQuery<T> newBuilder = new SelectQuery<T>(this);
 		if (columnNames == null) {
@@ -93,6 +97,19 @@ public class SelectQuery<T> extends BaseQuery<T> implements Where<SelectQuery<T>
 			newBuilder.columns = Immutables.of(columnNames);
 		}
 		return newBuilder;
+	}
+
+	@Override
+	public SelectQuery<T> excludeColumns(String... columnNames){
+		throw new RuntimeException("excludeColumns is not supported yet in SelectQuery (only in InsertQuery and UpdateQuery)");
+//		SelectQuery<T> newBuilder = new SelectQuery<T>(this);
+//		if (columnNames == null){
+//			newBuilder.excludedColumns = null;
+//		}else {
+//			newBuilder.excludedColumns = ImmutableSet.copyOf(columnNames);
+//		}
+//
+//		return newBuilder;
 	}
 	// --------- /Columns --------- //
 
@@ -191,6 +208,10 @@ public class SelectQuery<T> extends BaseQuery<T> implements Where<SelectQuery<T>
 	// --------- Accessors --------- //
 	public List<Object> getColumns() {
 		return columns;
+	}
+
+	public Set<String> getExcludedColumns() {
+		return excludedColumns;
 	}
 
 	@Override

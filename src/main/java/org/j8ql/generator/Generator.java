@@ -35,11 +35,11 @@ public class Generator {
 		List<ValueObject> batchObjects = builder.getBatchObjects();
 
 		if (valueObject != null) {
-			columns = valueObject.getColumns(db.mapper, tableDef, builder.getColumns());
+			columns = valueObject.getColumns(db.mapper, tableDef, builder.getColumns(), builder.getExcludedColumns());
 		}else if (batchObjects != null){
 			// if not columns, and we have batchObjects, then, try to get the columns from the first batchObject
 			if (batchObjects.size() > 0){
-				columns = batchObjects.get(0).getColumns(db.mapper, tableDef, builder.getColumns());
+				columns = batchObjects.get(0).getColumns(db.mapper, tableDef, builder.getColumns(), builder.getExcludedColumns());
 			}
 			// TODO: might want to raise an exception here or later.
 		}else{
@@ -76,7 +76,7 @@ public class Generator {
 
 	protected List<Object> valuesFromValueObject(ValueObject valueObject, IUQuery iuBuilder){
 		TableDef tableDef = db.getTableDef(iuBuilder);
-		return valueObject.getValues(db.mapper, tableDef, iuBuilder.getColumns());
+		return valueObject.getValues(db.mapper, tableDef, iuBuilder.getColumns(), iuBuilder.getExcludedColumns());
 	}
 
 

@@ -83,14 +83,13 @@ public class InsertQueryTest extends TestSupport {
 	public void simpleInsertColumns() {
 		DB db = new DBBuilder().build(dataSource);
 		try (Runner runner = db.openRunner()){
-			// here we not not include title
-			InsertQuery<Integer> ib = insert().columns("id","username").into("user");
 
+			//// Test with explicit column array
 			// the userMap value will have the title
 			Map userMap = mapOf("id",123L,"username","test_simpleInsertColumns-user-1","title","test_title");
 
 			// we run the insertQuery
-			runner.exec(ib.value(userMap));
+			runner.exec(insert("user").columns("id","username").value(userMap));
 
 			// get it back from the db
 			Map userMapFromDb = runner.first(select("user").whereId(123L)).get();
@@ -99,13 +98,47 @@ public class InsertQueryTest extends TestSupport {
 			// and check title is null
 			assertNull(userMapFromDb.get("title"));
 
-			// try it with a Set for columns
-			ib = insert("user").columns(Sets.newHashSet("id", "username"));
+			//// try it with a Set for columns
 			userMap = mapOf("id",124L,"username","test_simpleInsertColumns-user-2","title","test_title");
-			runner.exec(ib.value(userMap));
+			runner.exec(insert("user").columns(Sets.newHashSet("id", "username")).value(userMap));
 			userMapFromDb = runner.first(select("user").whereId(124L)).get();
 			assertEquals("test_simpleInsertColumns-user-2", userMapFromDb.get("username"));
 			assertNull(userMapFromDb.get("title"));
+		}
+	}
+
+	@Test
+	public void simpleExcludeColumns(){
+		DB db = new DBBuilder().build(dataSource);
+		try (Runner runner = db.openRunner()) {
+
+			//// check with a value map and excludeColumns
+			// here we not not include title
+			InsertQuery<Integer> ib = insert().into("user");
+
+			// Insert the userMap and exclude the title
+			Map userMap = mapOf("id",123L,"username","test_simpleExcludeColumns-user-1","title","test_title");
+			runner.exec(insert("user").value(userMap).excludeColumns("title"));
+
+			// check username set correctly, and title null (because it was excluded)
+			Map userMapFromDb = runner.first(select("user").whereId(123L)).get();
+			assertEquals("test_simpleExcludeColumns-user-1", userMapFromDb.get("username"));
+			assertNull(userMapFromDb.get("title"));
+
+			///// check with explicit columns and excluded columns
+			userMap = mapOf("id",124L,"username","test_simpleExcludeColumns-user-2","title","test_title");
+			runner.exec(insert("user").value(userMap).columns("id","username","title").excludeColumns("title"));
+			userMapFromDb = runner.first(select("user").whereId(124L)).get();
+			assertEquals("test_simpleExcludeColumns-user-2", userMapFromDb.get("username"));
+			assertNull(userMapFromDb.get("title"));
+
+			//// Check with Entity object
+			User user = new User();
+			user.setUsername("test_simpleExcludeColumns-user-2").setId(125L).setTitle("title");
+			runner.exec(insert(User.class).value(user).excludeColumns("title"));
+			assertNull(runner.first(select(User.class).whereId(125L)).get().getTitle());
+
+
 		}
 	}
 

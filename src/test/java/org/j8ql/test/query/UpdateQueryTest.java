@@ -11,6 +11,7 @@ import org.j8ql.Runner;
 import org.j8ql.query.UpdateQuery;
 import org.j8ql.test.TestSupport;
 import org.j8ql.test.app.Contact;
+import org.j8ql.test.app.User;
 import org.junit.Test;
 
 import java.util.List;
@@ -20,7 +21,9 @@ import java.util.stream.Stream;
 import static org.j8ql.query.Query.and;
 import static org.j8ql.query.Query.select;
 import static org.j8ql.query.Query.update;
+import static org.jomni.util.Maps.mapOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * <p></p>
@@ -63,6 +66,22 @@ public class UpdateQueryTest extends TestSupport {
 			List<Contact> developers = runner.list(Contact.class, "select * from contact where title = ? ", "Dev");
 			assertEquals(2, developers.size());
 			// --------- /Multiple Update --------- //
+		}
+	}
+
+	@Test
+	public void simpleExcludeColumns(){
+		// most is already tested in insertQueryTest, so, just doing a sanity check
+		createDataSet();
+
+		DB db = new DBBuilder().build(dataSource);
+		try (Runner runner = db.openRunner()) {
+
+			Map userMike = mapOf("name","MIKE","title","NO TITLE TO BE SET");
+			runner.exec(update("contact").value(userMike).excludeColumns("title"));
+			Contact contact = runner.first(select(Contact.class).whereId(1L)).get();
+			assertEquals("MIKE", contact.getName());
+			assertEquals("developer", contact.getTitle()); // should not have changed (because in exclude list)
 		}
 	}
 
