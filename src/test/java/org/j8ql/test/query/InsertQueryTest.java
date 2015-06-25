@@ -8,6 +8,7 @@ package org.j8ql.test.query;
 import com.google.common.collect.Sets;
 import org.j8ql.*;
 import org.j8ql.query.InsertQuery;
+import org.j8ql.query.Query;
 import org.j8ql.test.TestSupport;
 import static org.j8ql.query.Query.*;
 import static org.jomni.util.Maps.mapOf;
@@ -135,8 +136,6 @@ public class InsertQueryTest extends TestSupport {
 			user.setUsername("test_simpleExcludeColumns-user-2").setId(125L).setTitle("title");
 			runner.exec(insert(User.class).value(user).excludeColumns("title"));
 			assertNull(runner.first(select(User.class).whereId(125L)).get().getTitle());
-
-
 		}
 	}
 
@@ -164,6 +163,27 @@ public class InsertQueryTest extends TestSupport {
 			}
 		}
 	}
+
+	@Test
+	public void insertUserMapWithExtraColumns(){
+		DB db = new DBBuilder().build(dataSource);
+		try (Runner runner = db.openRunner()) {
+			InsertQuery<Long> ib = insert("user").returningIdAs(Long.class);
+
+			Map userMap = mapOf("id", 123L, "username", "test_username123");
+			userMap.put("foo","bar");
+			Set<String> columns = userMap.keySet();
+
+			Long userId = runner.exec(ib.value(userMap).columns(db.getValidColumns(ib, columns)));
+
+			User user = runner.first(Query.select(User.class).whereId(userId)).get();
+			assertEquals(123L, user.getId().longValue());
+			assertEquals("test_username123", user.getUsername());
+
+
+		}
+	}
+
 
 	@Test
 	public void insertWithReturningUserClass(){
@@ -256,8 +276,8 @@ public class InsertQueryTest extends TestSupport {
 		Map map = new HashMap();
 
 		try (Runner runner = db.openRunner()) {
-			// Note: needs to have the (Set<String>) cast to return the appropriate type.
-			return runner.exec(update("user").columns((Set<String>)map.keySet()));
+			// Note: needs to have the (Set<Object>) cast to return the appropriate type.
+			return runner.exec(update("user").columns((Set<Object>)map.keySet()));
 		}
 
 	}

@@ -235,28 +235,17 @@ public class DB {
 
 
 	// --------- Map To Table Column Utilities --------- //
-	/**
-	 * Create another map object with only the name/value pairs that match the table column name.
-	 *
-	 * @param tableName
-	 * @param map the original map with all the name/value. If null, and empty map will be returned.
-	 * @return
-	 */
-	private Map extractTableProperties(String tableName, Map map) {
-		TableDef tableDef = getTableDef(tableName);
-		Map entityMap = new HashMap();
-		if (map != null){
-			for (Object key : map.keySet()) {
-				String keyStr = key.toString();
-				FieldOp fieldOp = new FieldOp(keyStr);
-				if (tableDef.hasColumnName(fieldOp.name)) {
-					entityMap.put(keyStr, map.get(key));
-				}
+
+	public List<String> getValidColumns(BaseQuery query, Collection<String> columns) {
+		TableDef tableDef = getTableDef(query);
+		List<String> validColumns = new ArrayList<>();
+		for (String name : columns) {
+			if (tableDef.hasColumnName(name)) {
+				validColumns.add(name);
 			}
 		}
-		return entityMap;
+		return validColumns;
 	}
-
 
 	public Condition getWhereIdCondition(TableDef tableDef, Object obj){
 		String tableDot = tableDef.getName() + ".";
