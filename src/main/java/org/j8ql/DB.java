@@ -236,7 +236,19 @@ public class DB {
 
 	// --------- Map To Table Column Utilities --------- //
 
+	/**
+	 * Return the list of valid column names for this target query table.
+	 *
+	 * If columns is null, will return null.
+	 *
+	 * @param query
+	 * @param columns collection of column names (null proof, meaning, if null, the method will return null)
+	 * @return
+	 */
 	public List<String> getValidColumns(BaseQuery query, Collection<String> columns) {
+		if (columns == null) {
+			return null;
+		}
 		TableDef tableDef = getTableDef(query);
 		List<String> validColumns = new ArrayList<>();
 		for (String name : columns) {
