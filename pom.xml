@@ -118,17 +118,17 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>9.3-1101-jdbc41</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
-			<version>2.3.6</version>
-			<scope>provided</scope>
+			<version>2.4.3</version>
+			<scope>provided</scope>			
+		</dependency>		
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.4.1208</version>
+			<scope>provided</scope>			
 		</dependency>
 
 		<dependency>

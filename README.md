@@ -7,7 +7,12 @@ J8QL
 - **Java 8 Centric:** Written in Java 8 for Java 8.
 - **Postgresql First:**  Depth before breath. Going deep on PostgreSQL first.
 
-**Current version:** 0.5.4 *(Under development, relatively robust, for postgres 9.3 only, API might change)* 
+**CURRENT**
+  - 0.5.5:  March 4th: Under development, relatively robust for what it does, for postgres 9.3/9.4 with JDBC only, API might change)
+
+**Next:** 
+  - 0.5.6-SNAPSHOT: Update to latest Postgres JDBC
+    - fixed: #10 Java class not found when using latest Postgresql Driver   
 
 **License:** Apache v2
 
@@ -337,7 +342,7 @@ boolean b = runner.execute("insert into contact (id,name) values (?,?)", 1,"Mike
 int r = runner.executeUpdate("insert into contact (id,name) values (?,?)", 2,"Angie");
 
 //  can use the sql returning in pure SQL too
-Long jenId = (Long) runner.executeWithReturn("insert into contact (id,name) values (?,?) returning id", 3,"Jen").
+Long jenId = (Long) runner.executeWithReturn("insert into contact (id,name) values (?,?) returning id", 3,"Jen");
 ```
 
 
@@ -349,7 +354,7 @@ Just add the following dependency in your pom.xml (J8QL is on maven central)
     <dependency>
       <groupId>org.j8ql</groupId>
       <artifactId>j8ql</artifactId>
-      <version>0.5.4</version>
+      <version>0.5.5</version>
     </dependency>   
 ```
 

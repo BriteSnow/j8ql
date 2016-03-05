@@ -5,8 +5,9 @@
 
 package org.j8ql;
 
-import org.postgresql.jdbc4.Jdbc4ResultSetMetaData;
+import org.postgresql.jdbc.PgResultSetMetaData;
 
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 /**
@@ -15,27 +16,32 @@ import java.sql.SQLException;
 class ResultSetColumn {
 	final int     cidx;
 	final String  columnName;
-	final String  baseColumnName;
-	final String  baseTableName;
+//	final String  baseColumnName;
+//	final String  baseTableName;
 	final String  tableName;
 	final String  columnLabel;
 
 	final String  name;
 
-	ResultSetColumn(Jdbc4ResultSetMetaData rsmd, int cidx) {
+	ResultSetColumn(ResultSetMetaData rsmd, int cidx) {
 		try {
 			this.cidx = cidx;
 			name  = columnName = rsmd.getColumnName(cidx);
-			baseColumnName = rsmd.getBaseColumnName(cidx);
-			baseTableName = rsmd.getBaseTableName(cidx);
 			tableName = rsmd.getTableName(cidx);
 			columnLabel = rsmd.getColumnLabel(cidx);
+
+			//			baseColumnName = rsmd.getBaseColumnName(cidx);
+			//			baseTableName = rsmd.getBaseTableName(cidx);
 		} catch (SQLException e) {
 			throw new RSQLException(e);
 		}
 	}
 
 	public String toString() {
-		return "cidx: " + cidx + " tableName: " + tableName + " columnLabel: " + columnLabel + " columnName: " + columnName + "\t\t baseTableName: " + baseTableName +  "\t\t baseColumndName: " + baseColumnName;
+		return "cidx: " + cidx + " tableName: " + tableName + " columnLabel: " + columnLabel + " columnName: " +
+				columnName;
+
+		// This would require PgResultSetMetaData
+		//+ "\t\t baseTableName: " + baseTableName +  "\t\t baseColumndName: " + baseColumnName;
 	}
 }

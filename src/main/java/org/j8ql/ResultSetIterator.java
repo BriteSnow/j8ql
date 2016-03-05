@@ -5,9 +5,10 @@
 
 package org.j8ql;
 
-import org.postgresql.jdbc4.Jdbc4ResultSetMetaData;
+import org.postgresql.jdbc.PgResultSetMetaData;
 
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Iterator;
 
@@ -38,7 +39,7 @@ public class ResultSetIterator implements Iterator<Record> {
 
 	private void init() {
 		try {
-			Jdbc4ResultSetMetaData rsmd = (Jdbc4ResultSetMetaData) rs.getMetaData();
+			ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
 			columnCount = rsmd.getColumnCount();
 			resultSetColumns = new ResultSetColumn[columnCount];
 			for (int i = 0; i < columnCount; i++) {
