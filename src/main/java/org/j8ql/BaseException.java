@@ -16,6 +16,11 @@ public class BaseException extends RuntimeException {
 	private Object[] values;
 
 	public BaseException(Error error, Object[] values) {
+		this(null, error, values);
+	}
+
+	public BaseException(Throwable cause, Error error, Object[] values) {
+		super(cause);
 		this.error = error;
 		this.values = values;
 	}

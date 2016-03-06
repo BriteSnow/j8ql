@@ -16,10 +16,11 @@ import java.sql.SQLException;
 class ResultSetColumn {
 	final int     cidx;
 	final String  columnName;
-//	final String  baseColumnName;
-//	final String  baseTableName;
 	final String  tableName;
 	final String  columnLabel;
+	final int	  sqlType;
+	final String  sqlTypeName;
+	final String  columnClassName;
 
 	final String  name;
 
@@ -29,9 +30,9 @@ class ResultSetColumn {
 			name  = columnName = rsmd.getColumnName(cidx);
 			tableName = rsmd.getTableName(cidx);
 			columnLabel = rsmd.getColumnLabel(cidx);
-
-			//			baseColumnName = rsmd.getBaseColumnName(cidx);
-			//			baseTableName = rsmd.getBaseTableName(cidx);
+			sqlType = rsmd.getColumnType(cidx);
+			sqlTypeName = rsmd.getColumnTypeName(cidx);
+			columnClassName = rsmd.getColumnClassName(cidx);
 		} catch (SQLException e) {
 			throw new RSQLException(e);
 		}
@@ -39,7 +40,7 @@ class ResultSetColumn {
 
 	public String toString() {
 		return "cidx: " + cidx + " tableName: " + tableName + " columnLabel: " + columnLabel + " columnName: " +
-				columnName;
+				columnName + " typeName: " + sqlTypeName + " type: " + sqlType + " columnClassName: " + columnClassName;
 
 		// This would require PgResultSetMetaData
 		//+ "\t\t baseTableName: " + baseTableName +  "\t\t baseColumndName: " + baseColumnName;

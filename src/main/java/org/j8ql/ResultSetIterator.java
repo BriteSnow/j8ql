@@ -7,9 +7,8 @@ package org.j8ql;
 
 import org.postgresql.jdbc.PgResultSetMetaData;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.ZonedDateTime;
 import java.util.Iterator;
 
 
@@ -88,18 +87,27 @@ public class ResultSetIterator implements Iterator<Record> {
 
 				record = new Record();
 				for (int i = 0; i < columnCount; i++) {
+					ResultSetColumn cDef = resultSetColumns[i];
+					ConvertContext ctx = new ConvertContext(cDef);
+
 					int cidx = i + 1;
-					Object val = rs.getObject(cidx);
-					if (val == null) {
+
+					Object rsval = rs.getObject(cidx);
+					if (rsval == null) {
 						continue;
 					}
-					val = db.getJavaVal(val);
-					ResultSetColumn cDef = resultSetColumns[i];
-					String name = cDef.name;
+					Object val = db.getJavaVal(rsval, ctx);
+
+					// DEBUG CODE that ignore system table reads
+//					if (!Character.isUpperCase(cDef.columnName.charAt(0)) && !cDef.columnName.startsWith("table") &&
+//							!cDef.tableName.startsWith("pg_") && cDef.tableName.length() > 0){
+//						System.out.println(cDef);
+//						System.out.println("\t" + rsval.getClass().getName());
+//					}
 
 					// add to the map only if the Name is not already added
-					if (!record.containsKey(name)){
-						record.put(name, val);
+					if (!record.containsKey(cDef.name)){
+						record.put(cDef.name, val);
 					}
 					// TODO: need to add it to the future Record object at the index.
 					//if (!Strings.isNullOrEmpty(cDef.baseTableName)){

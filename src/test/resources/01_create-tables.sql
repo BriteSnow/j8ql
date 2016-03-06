@@ -25,11 +25,11 @@ CREATE TABLE project
 	id bigserial NOT NULL,
 	name character varying(255),
 	description text,
-
+	"startTime" timestamp,
 	-- Timestamp data
 	"creatorId" bigInt,
 	"createTime" timestamp with time zone,
-	"updateTime" timestamp  with time zone,
+	"updateTime" timestamp with time zone,
 		
 	CONSTRAINT project_pk PRIMARY KEY (id)
 );

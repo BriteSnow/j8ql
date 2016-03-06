@@ -6,6 +6,8 @@
 package org.j8ql;
 
 import java.sql.*;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -32,6 +34,7 @@ import static org.j8ql.DBException.DBError;
 import static org.j8ql.query.Query.and;
 
 public class DB {
+	public static final Calendar calUTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
 	private final DataSource dataSource;
 
@@ -139,21 +142,21 @@ public class DB {
 	}
 
 	// --------- val --------- //
-	public Object getJavaVal(Object val) {
+	public Object getJavaVal(Object val, ConvertContext ctx) {
 		if (dbToJavaConverterByJavaType != null) {
 			ToJavaConverter conv = dbToJavaConverterByJavaType.get(val.getClass());
 			if (conv != null) {
-				val = conv.toJava(val);
+				val = conv.toJava(val, ctx);
 			}
 		}
 		return val;
 	}
 
-	public Object getDbVal(Object val) {
+	public Object getDbVal(Object val, ConvertContext ctx) {
 		if (javaToDbConverterByJavaType != null) {
 			ToDbConverter conv = javaToDbConverterByJavaType.get(val.getClass());
 			if (conv != null) {
-				val = conv.toDb(val);
+				val = conv.toDb(val, ctx);
 			}
 		}
 		return val;
@@ -312,35 +315,47 @@ public class DB {
 				if (val == null) {
 					pStmt.setObject(cidx, null);
 				} else {
+					ParameterMetaData pmd = pStmt.getParameterMetaData();
+					ConvertContext ctx = new ConvertContext(pmd, i + 1);
 
-					val = getDbVal(val);
+					val = getDbVal(val, ctx);
+
 
 					// --------- More Value Post Processing When Needed --------- //
 					// Handle the case that this is a special type (enum, full object)
 					// NOTE: Perhaps the getDbVal should take a targetType. However, not sure for performance.
 					//       Here we just do extra work if we really need too, and try to avoid getting the MetaData access.
 					Class valClass = val.getClass();
+
 					// Java Enum to Db String
-					if (valClass.isEnum() ){
-						ParameterMetaData pmd = pStmt.getParameterMetaData();
+					if (valClass.isEnum()) {
 						if ("java.lang.String".equals(pmd.getParameterClassName(i + 1))) {
 							val = ((Enum) val).name();
-						}else{
+						} else {
 							// TODO: for now, nothing, it will probably fail. Later need to handle ordinal if number
 						}
-					}else if( !isStandardDbCompatibleType(valClass)) {
-						ParameterMetaData pmd = pStmt.getParameterMetaData();
-						String dbTypeName = pmd.getParameterTypeName(i + 1);
-						if ("hstore".equals(dbTypeName)){
+					} else if( !isStandardDbCompatibleType(valClass)) {
+						if ("hstore".equals(ctx.getColumnSqlTypeName())){
 							val = mapper.asMap(val);
 						}else{
-							throw new DBException(DBError.INCOMPATIBLE_JAVA_TYPE_WITH_COLUMN_TYPE,valClass,dbTypeName);
+							throw new DBException(DBError.INCOMPATIBLE_JAVA_TYPE_WITH_COLUMN_TYPE,valClass,ctx.getColumnSqlTypeName());
 						}
 						// TODO: will need to handle the case where the target type is a varchar/text (we should serialize to json in this case)
-
 					}
 					// --------- /More Value Post Processing When Needed --------- //
-					pStmt.setObject(cidx, val);
+					try {
+
+						if ("timestamptz".equals(ctx.getColumnSqlTypeName()) && val instanceof Timestamp){
+							// for now, not sure if this makes much of a difference. Timestamp with timezone seems to
+							// be always stored with system timezone.
+							pStmt.setTimestamp(cidx, (Timestamp) val, calUTC);
+						}else{
+							pStmt.setObject(cidx, val);
+						}
+
+					}catch(Throwable t){
+						throw new DBException(t, DBError.INCOMPATIBLE_JAVA_TYPE_WITH_COLUMN_TYPE,valClass,ctx.getColumnSqlTypeName());
+					}
 				}
 			}
 			return pStmt;
@@ -351,8 +366,12 @@ public class DB {
 
 	// Broad assumptions
 	static private final Set<String> dbCompatiblePackages = Maps.setOf("java.lang", "java.sql", "java.math");
+	static private final Set<Class> dbCompatibleClasses = Maps.setOf(ZonedDateTime.class);
+
 	private boolean isStandardDbCompatibleType(Class cls) {
-		return (cls.isPrimitive() || Map.class.isAssignableFrom(cls) || dbCompatiblePackages.contains(cls.getPackage().getName()));
+		return (cls.isPrimitive() || Map.class.isAssignableFrom(cls)
+				|| dbCompatiblePackages.contains(cls.getPackage().getName())
+				|| dbCompatibleClasses.contains(cls));
 	}
 
 

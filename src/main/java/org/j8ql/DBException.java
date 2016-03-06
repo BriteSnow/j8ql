@@ -28,4 +28,8 @@ public class DBException extends BaseException{
 		super(DBError,values);
 	}
 
+	public DBException(Throwable t, DBError DBError, Object... values){
+		super(t, DBError,values);
+	}
+
 }

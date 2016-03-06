@@ -7,5 +7,5 @@ package org.j8ql;
 
 public interface ToJavaConverter<T> extends BaseConverter{
 
-    public Object toJava(T dbObj);
+    public Object toJava(T dbObj, ConvertContext ctx);
 }

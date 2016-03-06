@@ -7,5 +7,5 @@ package org.j8ql;
 
 public interface ToDbConverter<T>  extends BaseConverter {
 
-    public abstract Object toDb(T javaObj);
+    public abstract Object toDb(T javaObj, ConvertContext ctx);
 }

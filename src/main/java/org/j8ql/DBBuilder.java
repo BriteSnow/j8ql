@@ -6,6 +6,8 @@
 package org.j8ql;
 
 import java.sql.Timestamp;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,20 +17,45 @@ import javax.sql.DataSource;
  * Mutable Query to build a immutable DB object. Make sure to not share a DBBuilder instance as any operation will modify its properties.
  */
 public class DBBuilder {
+	static private final ZoneId UTC = ZoneId.of("UTC");
 
     private Map<Class,ToDbConverter> toDbConverterByJavaType = null; 
     
     private Map<Class,ToJavaConverter> toJavaConverterByJavaType = null; 
     
     public DBBuilder(){
-		// default JavaToDb Type converters
-		addToDbConverter(java.util.Date.class, (javaDate) -> new Timestamp(javaDate.getTime()));
-		addToDbConverter(java.time.LocalDate.class, (localDate) -> java.sql.Date.valueOf(localDate));
-		addToDbConverter(java.time.LocalDateTime.class, (localDateTime) -> java.sql.Timestamp.valueOf(localDateTime));
+		// --------- Default toDbConverters --------- //
+		addToDbConverter(java.util.Date.class, (javaDate, ctx) -> new Timestamp(javaDate.getTime()));
+		addToDbConverter(java.time.LocalDate.class, (localDate, ctx) -> java.sql.Date.valueOf(localDate));
+		addToDbConverter(java.time.LocalDateTime.class, (localDateTime, ctx) -> java.sql.Timestamp.valueOf
+				(localDateTime));
 
-		// default DbToJava Type converters
-		addToJavaConverter(java.sql.Date.class, (sqlDate) -> sqlDate.toLocalDate());
-		addToJavaConverter(java.sql.Timestamp.class, (sqlTimestamp) -> sqlTimestamp.toLocalDateTime());
+		// ZonedDateTime are automatically changed to UTC timestamps
+        addToDbConverter(java.time.ZonedDateTime.class,
+                (zonedDateTime, ctx) -> {
+					ZonedDateTime utcVal = zonedDateTime.withZoneSameInstant(UTC);
+					return (zonedDateTime != null) ? new Timestamp(zonedDateTime
+							.toInstant().getEpochSecond() * 1000L) : null;
+				});
+		// --------- /Default toDbConverters --------- //
+
+		// --------- Default toJavaConverters --------- //
+		addToJavaConverter(java.sql.Date.class, (sqlDate, ctx) -> sqlDate.toLocalDate());
+		//
+        addToJavaConverter(java.sql.Timestamp.class, (timestamp, ctx) -> {
+			// if the sqlType is timestamp with timezone, then, returned a ZonedDateTime
+			if ("timestamptz".equals(ctx.getColumnSqlTypeName())){
+				return ZonedDateTime.ofInstant(timestamp.toInstant(),
+						ZoneId.of("UTC"));
+			}
+			// otherwise, return a localDateTime
+			else{
+				return timestamp.toLocalDateTime();
+			}
+
+		});
+		// --------- /Default toJavaConverters --------- //
+
     }
     
     public DB build(DataSource dataSource){
