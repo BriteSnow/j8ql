@@ -30,11 +30,11 @@ public class TsvTest  extends TestSupport {
 			}
 
 			// raw SQL tsv search (postgres tsv search will match "management" with "manager", as both have the "manag" lexeme)
-			List<Record> recordsFromSql = runner.list("select subject from ticket where to_tsvector(subject) @@ to_tsquery(?)","management");
+			List<Record> recordsFromSql = runner.list("select subject from ticket where to_tsvector(subject) @@ to_tsquery(?)","manager");
 			assertEquals(2, recordsFromSql.size());
 
 			// same, will
-			SelectQuery<Record> selectQuery = Query.select("ticket").columns("subject").where("to_tsvector(subject);@@;to_tsquery(?)","management");
+			SelectQuery<Record> selectQuery = Query.select("ticket").columns("subject").where("to_tsvector(subject);@@;to_tsquery(?)","manager");
 			List<Record> recordsFromSelectQuery = runner.list(selectQuery);
 			assertEquals(2, recordsFromSelectQuery.size());
 

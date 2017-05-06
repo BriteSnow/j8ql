@@ -177,7 +177,7 @@ public class ReadmeTest extends TestSupport {
 			// NOTE 1: You can add third part (with the second ";") and in this case, it will be columnNameOrFunction;operator;valueFunction
 			// NOTE 2: The first "columnName" can be a function, and in this case, it won't be escaped;
 			// NOTE 3: the last ";to_tsquery(?)" allow to optionally add a function value to the query (which is what we need for tsv search).
-			SelectQuery<Ticket> tsvSelect = Query.select(Ticket.class).where("to_tsvector(ticket.subject);@@;to_tsquery(?)", "management");
+			SelectQuery<Ticket> tsvSelect = Query.select(Ticket.class).where("to_tsvector(ticket.subject);@@;to_tsquery(?)", "manager");
 			System.out.println("sql: " + db.sql(tsvSelect));
 			// sql: select "ticket".* from "ticket" where to_tsvector(ticket.subject) @@ to_tsquery(?)
 
