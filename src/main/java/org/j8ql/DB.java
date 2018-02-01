@@ -307,6 +307,10 @@ public class DB {
 			if (vals == null) {
 				return pStmt;
 			}
+
+			// Grab metadata here outside of the vals loop to prevent major performance issues
+			ParameterMetaData pmd = pStmt.getParameterMetaData();
+
 			for (int i = 0; i < vals.length; i++) {
 				int cidx = i + 1;
 				Object val = vals[i];
@@ -315,7 +319,6 @@ public class DB {
 				if (val == null) {
 					pStmt.setObject(cidx, null);
 				} else {
-					ParameterMetaData pmd = pStmt.getParameterMetaData();
 					ConvertContext ctx = new ConvertContext(pmd, i + 1);
 
 					val = getDbVal(val, ctx);
