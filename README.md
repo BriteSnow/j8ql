@@ -8,15 +8,19 @@ J8QL
 - **Postgresql First:**  Depth before breath. Going deep on PostgreSQL first.
 
 **CURRENT**
-  - 0.5.5:  March 4th: Under development, relatively robust for what it does, for postgres 9.3/9.4 with JDBC only, API might change)
+  - [0.5.7 (2018-02-11)](https://github.com/BriteSnow/j8ql/milestone/4?closed=1): IMPORTANT PERF: #14 Fix to prevent getParameterMetaData being called for each param
 
-**Next:** 
-  - 0.5.6-SNAPSHOT: Update to latest Postgres JDBC
-    - fixed: #10 Java class not found when using latest Postgresql Driver   
+**Next**
+  - #12 getGeneratedKeys to provide ability to get batch insert's keys. (will need new implementation to fit API)
+  - getParameterMetaData caching (accross queries)
+  - Updated tests to show simple perf issues.
+
+**History:** 
+  - [0.5.6](https://github.com/BriteSnow/j8ql/milestone/3?closed=1): Add ZonedDateTime support, and more 
 
 **License:** Apache v2
 
-[J8QL by example](#j8ql-by-example) | [Maven Info](#maven-info) | [Key Concepts](#key-concepts) | [Why not Hibernate?](#why-not-hibernate) | [Why J8QL?](#why-j8ql)
+[J8QL by example](#j8ql-by-example) | [Maven Info](#maven-info) | [Key Concepts](#key-concepts) | [Why not Hibernate?](#why-not-hibernate) | [Why J8QL?](#why-j8ql) | [Build and Test](#Build-and-test)
 
 ### J8QL by example
 
