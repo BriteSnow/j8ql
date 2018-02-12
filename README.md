@@ -401,3 +401,26 @@ runner.execute(Query.insert("GroupContact").value(groupContact));
 If you think that those catches are actually benefits, then, J8QL might be exactly what you are looking for. If not, perhaps sticking with Hibernate might be a better option for you.
 
 
+## Build and test
+
+This library is built via maven. 
+
+```
+mvn clean package
+```
+
+Requirement: Postgresql running on default port 5432, and run the
+- `test-db/00_create-db-and-user.sql`
+- `test-db/01_create-tables.sql`
+
+There is a docker all ready to run the appropriate files. 
+
+Build the docker test db image.
+```
+docker build --rm -t j8ql-test-db ./test-db/
+```
+
+Run it
+```
+docker run -it -p 5432:5432 --rm j8ql-test-db
+```

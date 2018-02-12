@@ -6,6 +6,7 @@ import org.j8ql.Record;
 import org.j8ql.query.Query;
 import org.j8ql.query.SelectQuery;
 import org.j8ql.query.UpdateQuery;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.*;
@@ -22,7 +23,8 @@ public class DevTest extends TestSupport {
 
 	}
 
-	//@Test
+	@Test
+	@Ignore
 	public void streamTyping(){
 		// does not work if List does not have <Object>
 		List<Object> values = Arrays.asList("1","1");
