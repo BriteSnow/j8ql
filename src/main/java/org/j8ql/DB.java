@@ -369,7 +369,7 @@ public class DB {
 
 	// Broad assumptions
 	static private final Set<String> dbCompatiblePackages = Maps.setOf("java.lang", "java.sql", "java.math");
-	static private final Set<Class> dbCompatibleClasses = Maps.setOf(ZonedDateTime.class);
+	static private final Set<Class> dbCompatibleClasses = Maps.setOf(ZonedDateTime.class, UUID.class);
 
 	private boolean isStandardDbCompatibleType(Class cls) {
 		return (cls.isPrimitive() || Map.class.isAssignableFrom(cls)
