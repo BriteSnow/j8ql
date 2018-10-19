@@ -51,6 +51,10 @@ public class PGInsertGenerator extends PGGenerator {
 		sbValues.append(")");
 		sql.append(' ').append(sbNames).append(" VALUES ").append(sbValues);
 
+		if(insertBuilder.isOnConflictDoNothing()){
+			sql.append(" ON CONFLICT DO NOTHING ");
+		}
+
 		// RETURNING
 		processReturningSql(insertBuilder, tableDef, sql);
 
