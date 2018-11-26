@@ -135,6 +135,18 @@ public class PStmt extends Stmt {
 			throw new RSQLException(e,sql);
 		}
 	}
+
+	public List<Record> getGeneratedKeys() throws RSQLException{
+		List<Record> list;
+		ResultSet rs;
+		try{
+			rs = pstmt.getGeneratedKeys();
+			list = db.buildResults(rs);
+			return list;
+		}catch (SQLException e) {
+			throw new RSQLException(e,sql);
+		}
+	}
 	// --------- /Low Level Execute --------- //
 
 	// --------- List --------- //

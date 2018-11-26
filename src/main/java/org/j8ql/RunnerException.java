@@ -12,7 +12,8 @@ public class RunnerException  extends BaseException{
 	public enum RunnerError implements BaseException.Error {
 		DML_BUILDER_HAS_NO_RETURNING_CANNOT_BE_STREAMED("This UpdateQuery does not have any returning and therefore cannot be streamed or listed"),
 		INCOMPLETE_INSERT_BUILDER_NO_COLUMNS_OR_VALUE_OBJECT("This inserBuilder does not contain columns or a values object, not sure what to insert."),
-		CANNOT_BATCH_DOES_NOT_HAVE_BATCH_VALUE("This builder cannot be batchExecuted because it does not contain a batchValue or batchValues");
+		CANNOT_BATCH_DOES_NOT_HAVE_BATCH_VALUE("This builder cannot be batchExecuted because it does not contain a batchValue or batchValues"),
+		CANNOT_GETKEYS_DOES_NOT_HAVE_PREPARED_STATEMENT("This builder doesn't have PreparedStatement");
 
 		String msg;
 		RunnerError(String msg) {
