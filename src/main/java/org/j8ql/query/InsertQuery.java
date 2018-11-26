@@ -11,6 +11,7 @@ import java.util.List;
  * <p></p>
  */
 public class InsertQuery<T> extends IUQuery<T> implements Columns<InsertQuery<T>>      {
+	private boolean onConflictDoNothing = false;
 
 	// ---------Base Constructors --------- //
 	private InsertQuery(Class<T> asClass){
@@ -25,6 +26,7 @@ public class InsertQuery<T> extends IUQuery<T> implements Columns<InsertQuery<T>
 
 	private InsertQuery(InsertQuery insertBuilder, Class<T> asClass) {
 		super(insertBuilder, asClass);
+		this.onConflictDoNothing = insertBuilder.onConflictDoNothing;
 	}
 	// --------- /Clone Constructors --------- //
 
@@ -88,4 +90,13 @@ public class InsertQuery<T> extends IUQuery<T> implements Columns<InsertQuery<T>
 		return returning(new InsertQuery<A>(this, returningAs), returningAs, returningColumns);
 	}
 	// --------- /Returning --------- //
+
+	public InsertQuery<T> onConflictDoNothing(){
+		this.onConflictDoNothing = true;
+		return new InsertQuery<T>(this);
+	}
+
+	public boolean isOnConflictDoNothing(){
+		return onConflictDoNothing;
+	}
 }

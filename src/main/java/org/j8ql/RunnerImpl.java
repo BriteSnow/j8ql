@@ -174,7 +174,7 @@ public class RunnerImpl implements Runner {
 				Integer num = query.executeUpdate(values);
 				return (T) num;
 			}else {
-				Record rec = query.executeWithSingleReturn(values).get();
+				Record rec = query.executeWithSingleReturn(values).orElse(null);
 
 				if (rec != null){
 					if (Primitives.isWrapperType(asClass)){
